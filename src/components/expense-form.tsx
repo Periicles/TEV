@@ -25,6 +25,7 @@ export interface ExpenseFormValues {
   paymentMethod: string | null;
   notes: string | null;
   participantIds: string[];
+  paidBy: string | null;
 }
 
 type Suggestion = { key: string; value: { rate: number; date: string } | null };
@@ -283,7 +284,28 @@ export function ExpenseForm({
         </fieldset>
       )}
       {trip.participants.length === 1 && (
-        <input type="hidden" name="participantIds" value={trip.participants[0].id} />
+        <>
+          <input type="hidden" name="participantIds" value={trip.participants[0].id} />
+          <input type="hidden" name="paidBy" value={trip.participants[0].id} />
+        </>
+      )}
+
+      {trip.participants.length > 1 && (
+        <Field id={fieldId("paidBy")} label={t("paidBy")}>
+          <NativeSelect
+            id={fieldId("paidBy")}
+            name="paidBy"
+            defaultValue={expense.paidBy ?? ""}
+            wrapperClassName="w-full"
+          >
+            {trip.participants.map((p) => (
+              <NativeSelectOption key={p.id} value={p.id}>
+                {p.name}
+              </NativeSelectOption>
+            ))}
+            <NativeSelectOption value="">{t("paidByUnknown")}</NativeSelectOption>
+          </NativeSelect>
+        </Field>
       )}
 
       <Field id={fieldId("paymentMethod")} label={t("paymentMethod")}>

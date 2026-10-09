@@ -67,6 +67,8 @@ export const expenseInput = z.object({
   paymentMethod: z.string().trim().max(50).nullable(),
   notes: z.string().trim().max(1000).nullable(),
   participantIds: z.array(id).min(1),
+  /** Participant who paid; `null` when unknown, which leaves the expense out of settling up. */
+  paidBy: id.nullable(),
 });
 export type ExpenseInput = z.infer<typeof expenseInput>;
 
@@ -202,12 +204,19 @@ export async function updateTrip(userId: string, tripId: string, input: TripInpu
     }
     const removed = current.participants.filter((p) => !kept.has(p.id)).map((p) => p.id);
     if (removed.length > 0) {
-      const used = await tx
-        .select({ id: expenseParticipant.participantId })
-        .from(expenseParticipant)
-        .where(inArray(expenseParticipant.participantId, removed))
-        .limit(1);
-      if (used.length > 0) throw new InputError("participantInUse");
+      const [shares, payments] = await Promise.all([
+        tx
+          .select({ id: expenseParticipant.participantId })
+          .from(expenseParticipant)
+          .where(inArray(expenseParticipant.participantId, removed))
+          .limit(1),
+        tx
+          .select({ id: expense.id })
+          .from(expense)
+          .where(inArray(expense.paidBy, removed))
+          .limit(1),
+      ]);
+      if (shares.length > 0 || payments.length > 0) throw new InputError("participantInUse");
       await tx.delete(participant).where(inArray(participant.id, removed));
     }
 
@@ -275,6 +284,7 @@ async function prepareExpense(
     .where(eq(participant.tripId, target.id));
   const allowed = new Set(tripParticipants.map((p) => p.id));
   if (!data.participantIds.every((pid) => allowed.has(pid))) throw new NotFoundError();
+  if (data.paidBy && !allowed.has(data.paidBy)) throw new NotFoundError();
 
   if (data.categoryId) {
     const [owned] = await db
@@ -300,6 +310,7 @@ async function prepareExpense(
       baseAmountMinor,
       exchangeRate: String(rate),
       rateSource: sameCurrency ? ("same" as const) : (data.rateSource ?? "manual"),
+      paidBy: data.paidBy,
       paymentMethod: data.paymentMethod || null,
       notes: data.notes || null,
     },

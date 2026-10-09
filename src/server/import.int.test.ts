@@ -30,6 +30,7 @@ function input(overrides: Partial<ImportInput> = {}): ImportInput {
       endDate: null,
       participants: [{ name: "Paul" }, { name: "Léa" }],
     },
+    paidBy: null,
     newCategories: [],
     expenses: [],
     ...overrides,
@@ -42,6 +43,7 @@ describe.skipIf(!process.env.DATABASE_URL)("spreadsheet import", () => {
     const created = await importTrip(
       owner,
       input({
+        paidBy: 1,
         newCategories: ["Extras"],
         expenses: [
           {
@@ -79,6 +81,7 @@ describe.skipIf(!process.env.DATABASE_URL)("spreadsheet import", () => {
       expect(e).toMatchObject({ currency: "EUR", rateSource: "same" });
       expect(e.baseAmountMinor).toBe(e.amountMinor);
       expect(e.participantIds).toHaveLength(2);
+      expect(e.paidBy).toBe(details.participants[1].id);
     }
 
     const categories = await listCategories(owner);
@@ -105,6 +108,27 @@ describe.skipIf(!process.env.DATABASE_URL)("spreadsheet import", () => {
     const details = await getTripDetails(owner, created.id);
     expect(details.expenses).toHaveLength(1201);
     expect(details.summary.totalMinor).toBe(120100);
+  });
+
+  it("refuses a payer who is not among the participants", async () => {
+    await expect(
+      importTrip(
+        owner,
+        input({
+          paidBy: 2,
+          expenses: [
+            {
+              date: "2025-03-20",
+              label: "Bus",
+              amountMinor: 300,
+              categoryId: null,
+              newCategory: null,
+              notes: null,
+            },
+          ],
+        }),
+      ),
+    ).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it("refuses someone else's category and saves nothing", async () => {

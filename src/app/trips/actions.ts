@@ -122,6 +122,7 @@ export async function saveExpense(_state: FormState, form: FormData): Promise<Fo
     paymentMethod: optional(form, "paymentMethod"),
     notes: optional(form, "notes"),
     participantIds,
+    paidBy: optional(form, "paidBy"),
   };
 
   try {

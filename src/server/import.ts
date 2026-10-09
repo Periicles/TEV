@@ -16,6 +16,8 @@ const CHUNK = 500;
 
 export const importInput = z.object({
   trip: tripInput,
+  /** Index in `trip.participants` of who paid every expense, or `null` when unknown. */
+  paidBy: z.number().int().nonnegative().nullable(),
   /** Categories to create, referenced by index from the expenses. */
   newCategories: z.array(z.string().trim().min(1).max(50)).max(50),
   expenses: z
@@ -45,6 +47,9 @@ export async function importTrip(userId: string, input: ImportInput) {
   // Built-in categories exist before expenses point to them.
   const existing = await listCategories(userId);
   const owned = new Set(existing.map((c) => c.id));
+  if (data.paidBy !== null && data.paidBy >= data.trip.participants.length) {
+    throw new NotFoundError();
+  }
   for (const e of data.expenses) {
     if (e.categoryId && !owned.has(e.categoryId)) throw new NotFoundError();
     if (e.newCategory !== null && e.newCategory >= data.newCategories.length) {
@@ -89,8 +94,10 @@ export async function importTrip(userId: string, input: ImportInput) {
       categoryIds = inserted.map((c) => c.id);
     }
 
+    const paidBy = data.paidBy === null ? null : participants[data.paidBy].id;
     const values = data.expenses.map((e) => ({
       tripId: created.id,
+      paidBy,
       date: e.date,
       label: e.label,
       categoryId: e.newCategory !== null ? categoryIds[e.newCategory] : e.categoryId,
