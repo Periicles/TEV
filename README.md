@@ -61,8 +61,14 @@ CI runs all three on every pull request.
 - Amounts are stored as **integers in the currency's minor unit** (cents for EUR, yen for JPY,
   thousandths for KWD), never as floating-point numbers.
 - An expense keeps its original amount and currency, plus its amount in the base currency and the
-  **exchange rate used** (`1 EUR = 161.56 JPY`), fixed when it is saved. Until automatic rates land,
-  the rate of a foreign-currency expense is typed in; the form suggests the last one used.
+  **exchange rate used** (`1 EUR = 161.56 JPY`), fixed when it is saved.
+- **Official rates** come from [Frankfurter](https://frankfurter.dev), which blends the daily rates
+  of central banks: the expense form fills in the rate for the expense's date (a weekend gets the
+  last published rate) unless a rate was typed by hand, which can always be done and is kept. When
+  saving, the server fetches the official rate itself instead of trusting the browser. Past rates
+  are cached in the `exchange_rate` table; a currency without official rate falls back to the last
+  rate typed in the trip. `EXCHANGE_RATES_URL` overrides the API (end-to-end tests use a stub with
+  fixed rates) and `EXCHANGE_RATES_URL=off` disables it.
 - Every query is scoped to the signed-in user (`src/server/trips.ts`); someone else's trip behaves
   as if it did not exist.
 - Next.js keeps visited pages in the DOM (hidden): form field ids derive from the record they edit,
