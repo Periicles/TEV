@@ -1,12 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { afterSignIn } from "@/app/auth-actions";
 import { authClient } from "@/lib/auth-client";
 
 type LoginError = "invalidCredentials" | "tooManyAttempts" | "unexpectedError";
@@ -19,7 +19,6 @@ function toLoginError(status: number): LoginError {
 
 export function LoginForm() {
   const t = useTranslations("auth");
-  const router = useRouter();
   const [error, setError] = useState<LoginError | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -35,8 +34,7 @@ export function LoginForm() {
         setError(toLoginError(error.status));
         return;
       }
-      router.replace("/");
-      router.refresh();
+      await afterSignIn();
     });
   }
 

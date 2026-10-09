@@ -23,7 +23,7 @@ test("rejects a wrong password", async ({ page }) => {
 test("signs in and out", async ({ page }) => {
   await page.goto("/login");
   await signIn(page);
-  await expect(page.getByRole("heading", { name: "Bonjour E2E" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Mes voyages" })).toBeVisible();
 
   await page.getByRole("button", { name: "Préférences" }).click();
   await page.getByRole("menuitem", { name: "Se déconnecter" }).click();

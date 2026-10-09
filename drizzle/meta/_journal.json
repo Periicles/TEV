@@ -15,6 +15,13 @@
       "when": 1791545385169,
       "tag": "0001_enable-pgcrypto",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791546269360,
+      "tag": "0002_trips-and-expenses",
+      "breakpoints": true
     }
   ]
 }
