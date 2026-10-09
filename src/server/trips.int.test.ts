@@ -196,6 +196,34 @@ describe.skipIf(!process.env.DATABASE_URL)("trips and expenses", () => {
     expect((await getTripDetails(owner, trip.id)).trackPayers).toBe(true);
   });
 
+  it("stores an optional budget and the daily totals setting", async () => {
+    const created = await createTrip(owner, {
+      name: "Lisbonne",
+      baseCurrency: "EUR",
+      startDate: null,
+      endDate: null,
+      budgetMinor: 80000,
+      showDailyTotals: true,
+      participants: [{ name: "Paul" }],
+    });
+    const trip = await getTripDetails(owner, created.id);
+    expect(trip).toMatchObject({ budgetMinor: 80000, showDailyTotals: true, trackPayers: false });
+    expect((await listTrips(owner)).find((t) => t.id === trip.id)?.budgetMinor).toBe(80000);
+
+    await updateTrip(owner, trip.id, {
+      name: trip.name,
+      baseCurrency: "EUR",
+      startDate: null,
+      endDate: null,
+      budgetMinor: null,
+      participants: trip.participants.map((p) => ({ id: p.id, name: p.name })),
+    });
+    expect(await getTripDetails(owner, trip.id)).toMatchObject({
+      budgetMinor: null,
+      showDailyTotals: false,
+    });
+  });
+
   it("records who paid and balances the trip", async () => {
     const trip = await japanTrip();
     const [paul, lea] = trip.participants;
