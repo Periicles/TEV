@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import { Suspense } from "react";
 import { LocaleProvider } from "@/components/locale-provider";
 import "./globals.css";
@@ -20,14 +21,25 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
-  // The shell stays static: the language depends on the request and is resolved inside the
-  // Suspense boundary.
+  // The shell stays static: theme and language depend on the device and are applied on the client
+  // (theme by next-themes' inline script, language inside the Suspense boundary).
   return (
-    <html lang="fr" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html
+      lang="fr"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
       <body className="flex min-h-full flex-col">
-        <Suspense>
-          <LocaleProvider>{children}</LocaleProvider>
-        </Suspense>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Suspense>
+            <LocaleProvider>{children}</LocaleProvider>
+          </Suspense>
+        </ThemeProvider>
       </body>
     </html>
   );
