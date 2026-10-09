@@ -53,6 +53,21 @@ Then open http://localhost:3000 and sign in.
 
 CI runs all three on every pull request.
 
+## Trips and expenses
+
+- A trip has a **base currency** (EUR by default) and **participants**. Each expense is split evenly
+  between the participants it is shared with (all of them by default); a rounding remainder goes to
+  the first participants in the trip's order, so shares always add up to the total.
+- Amounts are stored as **integers in the currency's minor unit** (cents for EUR, yen for JPY,
+  thousandths for KWD), never as floating-point numbers.
+- An expense keeps its original amount and currency, plus its amount in the base currency and the
+  **exchange rate used** (`1 EUR = 161.56 JPY`), fixed when it is saved. Until automatic rates land,
+  the rate of a foreign-currency expense is typed in; the form suggests the last one used.
+- Every query is scoped to the signed-in user (`src/server/trips.ts`); someone else's trip behaves
+  as if it did not exist.
+- Next.js keeps visited pages in the DOM (hidden): form field ids derive from the record they edit,
+  and end-to-end tests look fields up inside the visible `<main>`.
+
 ## Accounts and database
 
 The app only has a login page: there is no sign-up. Accounts are created by the owner, directly in
