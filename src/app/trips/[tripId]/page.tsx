@@ -2,6 +2,7 @@ import { ChevronLeftIcon, PencilIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { categoryLabel } from "@/components/category-label";
+import { BudgetBar } from "@/components/budget-bar";
 import { CategoryRing } from "@/components/category-ring";
 import { ColorDot } from "@/components/color-dot";
 import { chartColor, colorNumber } from "@/lib/category-colors";
@@ -87,6 +88,14 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
                   {t("perPerson", { amount: money(splitEvenly(totalMinor, participantCount)[0]) })}
                 </CardDescription>
               )}
+              {trip.budgetMinor !== null && (
+                <BudgetBar
+                  spentMinor={totalMinor}
+                  budgetMinor={trip.budgetMinor}
+                  format={money}
+                  className="mt-3"
+                />
+              )}
             </CardHeader>
             {participantCount > 1 && totalMinor > 0 && (
               <CardContent className="grid gap-1 text-sm">
@@ -168,8 +177,13 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
           )}
           {[...days.entries()].map(([date, expenses]) => (
             <div key={date} className="grid gap-1">
-              <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                {day(date)}
+              <h3 className="flex justify-between gap-4 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                <span>{day(date)}</span>
+                {trip.showDailyTotals && (
+                  <span className="tabular-nums" data-testid="daily-total">
+                    {money(expenses.reduce((sum, e) => sum + e.baseAmountMinor, 0))}
+                  </span>
+                )}
               </h3>
               <ul className="divide-y rounded-lg border">
                 {expenses.map((e) => (

@@ -3,6 +3,7 @@ import { removeTrip } from "@/app/trips/actions";
 import { DeleteButton } from "@/components/delete-button";
 import { TripForm } from "@/components/trip-form";
 import { currencyOptions } from "@/lib/currencies";
+import { amountInput } from "@/server/expense-form-data";
 import { loadTripPage } from "@/server/pages";
 
 export default async function EditTripPage({ params }: PageProps<"/trips/[tripId]/edit">) {
@@ -27,6 +28,11 @@ export default async function EditTripPage({ params }: PageProps<"/trips/[tripId
           startDate: trip.startDate,
           endDate: trip.endDate,
           trackPayers: trip.trackPayers,
+          budget:
+            trip.budgetMinor === null
+              ? ""
+              : amountInput(trip.budgetMinor, trip.baseCurrency, locale),
+          showDailyTotals: trip.showDailyTotals,
           participants: trip.participants.map((p) => ({ id: p.id, name: p.name })),
         }}
       />

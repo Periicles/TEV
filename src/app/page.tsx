@@ -1,6 +1,7 @@
 import { FileSpreadsheetIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
+import { BudgetBar } from "@/components/budget-bar";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMoney } from "@/lib/money";
@@ -73,6 +74,15 @@ export default async function Home() {
                         .filter(Boolean)
                         .join(" · ")}
                     </CardDescription>
+                    {trip.budgetMinor !== null && (
+                      <BudgetBar
+                        compact
+                        spentMinor={trip.totalMinor}
+                        budgetMinor={trip.budgetMinor}
+                        format={(minor) => formatMoney(minor, trip.baseCurrency, locale)}
+                        className="mt-2"
+                      />
+                    )}
                   </CardHeader>
                 </Card>
               </Link>

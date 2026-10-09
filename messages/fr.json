@@ -60,8 +60,14 @@
     "participantsHint": "Les dépenses sont réparties entre eux.",
     "participantName": "Prénom du participant {number}",
     "addParticipant": "Ajouter un participant",
+    "options": "Options",
     "trackPayers": "Suivre qui a payé",
     "trackPayersHint": "Chaque dépense indique qui l'a payée, et le voyage calcule qui doit combien à qui. Sinon, les dépenses sont simplement partagées.",
+    "showDailyTotals": "Total par jour",
+    "showDailyTotalsHint": "Affiche le total de chaque journée dans la liste des dépenses.",
+    "budget": "Budget",
+    "budgetHint": "Facultatif, dans la devise de base. Le voyage montre ce qui a été dépensé et ce qu'il reste.",
+    "budgetPlaceholder": "Aucun",
     "removeParticipant": "Retirer {name}",
     "create": "Créer le voyage",
     "save": "Enregistrer"
@@ -81,6 +87,12 @@
     "noPayer": "Indique qui a payé chaque dépense pour calculer les remboursements.",
     "unpaidExpenses": "{count, plural, one {# dépense sans payeur n'est pas comptée} other {# dépenses sans payeur ne sont pas comptées}}.",
     "paidBy": "payé par {name}"
+  },
+  "budget": {
+    "label": "Budget dépensé",
+    "of": "Budget : {budget}",
+    "left": "Reste {amount}",
+    "over": "Dépassé de {amount}"
   },
   "expenseForm": {
     "createTitle": "Nouvelle dépense",

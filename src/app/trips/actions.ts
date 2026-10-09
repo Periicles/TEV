@@ -60,12 +60,18 @@ export async function saveTrip(_state: FormState, form: FormData): Promise<FormS
   const tripId = optional(form, "tripId");
   const ids = form.getAll("participantId").map(String);
   const names = form.getAll("participantName").map((name) => String(name).trim());
+  const baseCurrency = text(form, "baseCurrency");
+  const budgetText = text(form, "budget");
+  const budgetMinor = budgetText ? parseAmount(budgetText, baseCurrency) : null;
+  if (budgetText && budgetMinor === null) return { fields: { budget: "invalidAmount" } };
   const input = {
     name: text(form, "name"),
-    baseCurrency: text(form, "baseCurrency"),
+    baseCurrency,
     startDate: optional(form, "startDate"),
     endDate: optional(form, "endDate"),
     trackPayers: form.get("trackPayers") === "on",
+    budgetMinor,
+    showDailyTotals: form.get("showDailyTotals") === "on",
     participants: names
       .map((name, index) => ({ id: ids[index] || undefined, name }))
       .filter((p) => p.name || p.id),
