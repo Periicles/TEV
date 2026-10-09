@@ -8,7 +8,7 @@ export async function AppHeader() {
   const stored = cookieStore.get(LANGUAGE_COOKIE)?.value;
 
   return (
-    <header className="border-b border-foreground/10">
+    <header className="border-b">
       <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-4 py-3">
         <span className="font-semibold">{t("name")}</span>
         <PreferencesMenu languagePreference={isLanguage(stored) ? stored : "auto"} />

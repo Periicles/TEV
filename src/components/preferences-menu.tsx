@@ -1,8 +1,19 @@
 "use client";
 
+import { Settings2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useSyncExternalStore, useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { languages } from "@/i18n/config";
 import { setLanguagePreference } from "@/i18n/actions";
 
@@ -24,47 +35,43 @@ export function PreferencesMenu({ languagePreference }: { languagePreference: st
   const hydrated = useHydrated();
   const [pending, startTransition] = useTransition();
 
-  const selectClass =
-    "rounded-md border border-foreground/15 bg-background px-2 py-1 text-sm disabled:opacity-60";
-
   return (
-    <div className="flex items-center gap-2">
-      <label className="sr-only" htmlFor="language">
-        {t("preferences.language")}
-      </label>
-      <select
-        id="language"
-        className={selectClass}
-        value={languagePreference}
-        disabled={pending}
-        onChange={(event) => {
-          const value = event.target.value;
-          startTransition(() => setLanguagePreference(value));
-        }}
-      >
-        <option value="auto">{t("preferences.languageAuto")}</option>
-        {languages.map((language) => (
-          <option key={language} value={language}>
-            {t(`languages.${language}`)}
-          </option>
-        ))}
-      </select>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" aria-label={t("preferences.title")}>
+          <Settings2Icon />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuLabel>{t("preferences.language")}</DropdownMenuLabel>
+        <DropdownMenuRadioGroup
+          value={languagePreference}
+          onValueChange={(value) => startTransition(() => setLanguagePreference(value))}
+        >
+          <DropdownMenuRadioItem value="auto" disabled={pending}>
+            {t("preferences.languageAuto")}
+          </DropdownMenuRadioItem>
+          {languages.map((language) => (
+            <DropdownMenuRadioItem key={language} value={language} disabled={pending}>
+              {t(`languages.${language}`)}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
 
-      <label className="sr-only" htmlFor="theme">
-        {t("preferences.theme")}
-      </label>
-      <select
-        id="theme"
-        className={selectClass}
-        value={hydrated ? (theme ?? "system") : "system"}
-        onChange={(event) => setTheme(event.target.value)}
-      >
-        {themes.map((value) => (
-          <option key={value} value={value}>
-            {t(`preferences.${themeLabels[value]}`)}
-          </option>
-        ))}
-      </select>
-    </div>
+        <DropdownMenuSeparator />
+
+        <DropdownMenuLabel>{t("preferences.theme")}</DropdownMenuLabel>
+        <DropdownMenuRadioGroup
+          value={hydrated ? (theme ?? "system") : "system"}
+          onValueChange={setTheme}
+        >
+          {themes.map((value) => (
+            <DropdownMenuRadioItem key={value} value={value}>
+              {t(`preferences.${themeLabels[value]}`)}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
