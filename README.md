@@ -123,8 +123,10 @@ and clean up after themselves; CI runs them against its own PostgreSQL service.
   yourself in the project settings, for Production and Preview.
 - Vercel runs `vercel-build`, which applies the migrations before building. Each preview deployment
   gets its own Neon branch, so previews never touch production data.
-- Neon's free plan allows 10 branches per project: delete old preview branches in the Neon console
-  if a preview deployment fails to create one.
+- Neon's free plan allows 10 branches per project and the integration never deletes the ones it
+  creates. The `Neon preview cleanup` workflow deletes `preview/<branch>` when its pull request is
+  merged or closed, with the `NEON_API_KEY` repository secret (a Neon API key). Branches left over
+  from before can be deleted in the Neon console (_Branches_); never delete `main`.
 - To create your account in production, open the Neon console (Vercel → Storage → tev-db →
   _Open in Neon_), pick the production branch in the **SQL Editor** and run
   [`docs/sql/create-account.sql`](docs/sql/create-account.sql). The query, password included, may be
