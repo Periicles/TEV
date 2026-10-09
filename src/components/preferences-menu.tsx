@@ -2,7 +2,6 @@
 
 import { LogOutIcon, Settings2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useSyncExternalStore, useTransition } from "react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { languages } from "@/i18n/config";
 import { setLanguagePreference } from "@/i18n/actions";
-import { authClient } from "@/lib/auth-client";
+import { signOut } from "@/app/auth-actions";
 
 const themes = ["system", "light", "dark"] as const;
 const themeLabels = { system: "themeSystem", light: "themeLight", dark: "themeDark" } as const;
@@ -40,7 +39,6 @@ export function PreferencesMenu({
   signedIn: boolean;
 }) {
   const t = useTranslations();
-  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const hydrated = useHydrated();
   const [pending, startTransition] = useTransition();
@@ -85,13 +83,7 @@ export function PreferencesMenu({
         {signedIn && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onSelect={async () => {
-                await authClient.signOut();
-                router.replace("/login");
-                router.refresh();
-              }}
-            >
+            <DropdownMenuItem onSelect={() => startTransition(() => signOut())}>
               <LogOutIcon />
               {t("auth.signOut")}
             </DropdownMenuItem>
