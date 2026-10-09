@@ -5,7 +5,7 @@ A personal web app to track travel expenses in multiple currencies, replacing a 
 ## Stack
 
 - [Next.js](https://nextjs.org) (App Router) + React + TypeScript
-- Tailwind CSS, themes with [next-themes](https://github.com/pacocoursey/next-themes) (system, light, dark)
+- Tailwind CSS with [shadcn/ui](https://ui.shadcn.com) components (`new-york` style, Radix), themes with [next-themes](https://github.com/pacocoursey/next-themes) (system, light, dark)
 - [next-intl](https://next-intl.dev) for translations (French by default, English)
 - PostgreSQL ([Neon](https://neon.tech)) with [Drizzle ORM](https://orm.drizzle.team) — _coming soon_
 - [Better Auth](https://www.better-auth.com) (email + password, no public sign-up) — _coming soon_
@@ -33,6 +33,11 @@ Then open http://localhost:3000.
 | `pnpm test`         | Run unit tests with Vitest       |
 | `pnpm format`       | Format with Prettier             |
 | `pnpm format:check` | Check formatting                 |
+
+## UI components
+
+Components from shadcn/ui live in `src/components/ui` and are owned by this repo: edit them freely.
+Add a new one with `pnpm dlx shadcn@latest add <component>` (configuration in `components.json`).
 
 ## Internationalization
 
