@@ -8,7 +8,7 @@ A personal web app to track travel expenses in multiple currencies, replacing a 
 - Tailwind CSS with [shadcn/ui](https://ui.shadcn.com) components (`new-york` style, Radix), themes with [next-themes](https://github.com/pacocoursey/next-themes) (system, light, dark)
 - [next-intl](https://next-intl.dev) for translations (French by default, English)
 - PostgreSQL ([Neon](https://neon.tech) in production) with [Drizzle ORM](https://orm.drizzle.team)
-- [Better Auth](https://www.better-auth.com): email + password, no public sign-up
+- [Better Auth](https://www.better-auth.com): email + password login, accounts created in SQL
 - Hosted on [Vercel](https://vercel.com)
 
 ## Getting started
@@ -55,9 +55,20 @@ CI runs all three on every pull request.
 
 ## Accounts and database
 
-There is no sign-up page: accounts are created with `pnpm user:create`, which prompts for the
-password (at least 12 characters) without echoing it. `pnpm user:password` is the way back in if a
-password is forgotten. Sign-in attempts are limited to 5 per minute per IP address.
+The app only has a login page: there is no sign-up. Accounts are created by the owner, directly in
+the database. Passwords are hashed with bcrypt, which PostgreSQL can compute itself (`pgcrypto`,
+enabled by a migration), so no tool is needed besides an SQL editor:
+
+- **Create an account**: run [`docs/sql/create-account.sql`](docs/sql/create-account.sql) after
+  editing the email, name and password at its top.
+- **Reset a password** (also signs the account out everywhere): run
+  [`docs/sql/reset-password.sql`](docs/sql/reset-password.sql).
+
+Passwords must be 12 to 72 characters long. Sign-in attempts are limited to 5 per minute per IP
+address. These two files are executed as-is by the integration tests, so they stay correct.
+
+From a machine with the repository, `pnpm user:create` and `pnpm user:password` do the same with a
+hidden password prompt.
 
 Schema changes go through migrations: edit `src/db/schema`, run `pnpm db:generate`, commit the SQL
 file in `drizzle/`. Integration tests (`*.int.test.ts`) run against the database in `DATABASE_URL`
@@ -71,12 +82,10 @@ and clean up after themselves; CI runs them against its own PostgreSQL service.
   gets its own Neon branch, so previews never touch production data.
 - Neon's free plan allows 10 branches per project: delete old preview branches in the Neon console
   if a preview deployment fails to create one.
-- To create your account in production, run the script against the production database from your
-  machine (environment variables take precedence over `.env.local`):
-
-  ```bash
-  DATABASE_URL="<production DATABASE_URL_UNPOOLED>" pnpm user:create you@example.com "Your Name"
-  ```
+- To create your account in production, open the Neon console (Vercel → Storage → tev-db →
+  _Open in Neon_), pick the production branch in the **SQL Editor** and run
+  [`docs/sql/create-account.sql`](docs/sql/create-account.sql). The query, password included, may be
+  kept in the editor's history: delete it from there afterwards.
 
 ## UI components
 
