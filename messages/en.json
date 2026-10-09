@@ -93,7 +93,12 @@
     "save": "Save",
     "delete": "Delete expense",
     "deleteTitle": "Delete this expense?",
-    "deleteDescription": "This cannot be undone."
+    "deleteDescription": "This cannot be undone.",
+    "rateLoading": "Looking up the official rate…",
+    "rateOfficial": "Official rate of {date}.",
+    "rateManual": "Rate typed in.",
+    "rateUnavailable": "No official rate for this currency on this date: enter it.",
+    "useOfficialRate": "Use the official rate ({rate})"
   },
   "paymentMethods": {
     "card": "Card",

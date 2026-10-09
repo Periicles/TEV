@@ -3,13 +3,15 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import type { ErrorCode } from "@/i18n/errors";
-import { parseAmount } from "@/lib/money";
+import { isCurrency, parseAmount } from "@/lib/money";
 import { requireSession } from "@/lib/session";
+import { officialRate, type OfficialRate } from "@/server/exchange-rates";
 import {
   createExpense,
   createTrip,
   deleteExpense,
   deleteTrip,
+  getTrip,
   InputError,
   NotFoundError,
   updateExpense,
@@ -100,12 +102,21 @@ export async function saveExpense(_state: FormState, form: FormData): Promise<Fo
   if (participantIds.length === 0) fields.participantIds = "noParticipant";
   if (Object.keys(fields).length > 0) return { fields };
 
+  const date = text(form, "date");
+  // The official rate is looked up here rather than trusted from the browser.
+  let rate = { exchangeRate, rateSource: "manual" as "manual" | "official" };
+  if (text(form, "rateSource") === "official") {
+    const trip = await getTrip(user.id, tripId).catch(() => null);
+    const official = trip && (await officialRate(trip.baseCurrency, currency, date));
+    if (official) rate = { exchangeRate: official.rate, rateSource: "official" };
+  }
+
   const input = {
-    date: text(form, "date"),
+    date,
     label: text(form, "label"),
     amountMinor: amountMinor!,
     currency,
-    exchangeRate,
+    ...rate,
     categoryId: optional(form, "categoryId"),
     paymentMethod: optional(form, "paymentMethod"),
     notes: optional(form, "notes"),
@@ -128,4 +139,15 @@ export async function removeExpense(expenseId: string) {
   const { user } = await requireSession();
   const tripId = await deleteExpense(user.id, expenseId);
   redirect(`/trips/${tripId}`);
+}
+
+/** The official rate suggested for an expense, or `null` when there is none. */
+export async function suggestRate(
+  base: string,
+  quote: string,
+  date: string,
+): Promise<OfficialRate | null> {
+  await requireSession();
+  if (!isCurrency(base) || !isCurrency(quote)) return null;
+  return officialRate(base, quote, date);
 }

@@ -81,11 +81,11 @@ test("tracks a trip's expenses in several currencies, split between participants
   await expect(page.getByTestId("share-Léa")).toHaveText("11,91 €");
   await expect(page.getByRole("link", { name: /Sushiro.*3\s?850 JPY/ })).toBeVisible();
 
-  // The next expense defaults to the last currency and rate used.
+  // The next expense defaults to the last currency used; the official rate replaces the last one.
   await page.getByRole("link", { name: "Ajouter une dépense" }).click();
   await expect(main(page).getByLabel("Devise", { exact: true })).toHaveValue("EUR");
   await main(page).getByLabel("Devise", { exact: true }).selectOption("JPY");
-  await expect(main(page).getByLabel("Taux de change", { exact: true })).toHaveValue("161,56");
+  await expect(main(page).getByLabel("Taux de change", { exact: true })).toHaveValue("160");
   await page.getByRole("link", { name: "TEV" }).click();
   await page.getByRole("link", { name: new RegExp(name) }).click();
 
@@ -116,20 +116,60 @@ test("keeps typed values and explains errors", async ({ page }) => {
   await page.getByRole("button", { name: "Créer le voyage" }).click();
   await expect(page.getByRole("heading", { name })).toBeVisible();
 
+  // No official rate exists for this currency: it has to be typed in.
   await page.getByRole("link", { name: "Ajouter une dépense" }).click();
-  await main(page).getByLabel("Devise", { exact: true }).selectOption("USD");
-  await main(page).getByLabel("Montant", { exact: true }).fill("12,345");
-  await main(page).getByLabel("Libellé", { exact: true }).fill("Taxi");
+  await main(page).getByLabel("Devise", { exact: true }).selectOption("VND");
+  await expect(main(page).getByTestId("rate-status")).toHaveText(
+    "Pas de taux officiel pour cette devise à cette date : saisis-le.",
+  );
+  await main(page).getByLabel("Montant", { exact: true }).fill("1 300 000");
+  await main(page).getByLabel("Libellé", { exact: true }).fill("Pho");
   await page.getByRole("button", { name: "Ajouter", exact: true }).click();
 
   await expect(page.getByText("Indique le taux de change.")).toBeVisible();
-  await expect(main(page).getByLabel("Libellé", { exact: true })).toHaveValue("Taxi");
+  await expect(main(page).getByLabel("Libellé", { exact: true })).toHaveValue("Pho");
 
-  await main(page).getByLabel("Taux de change", { exact: true }).fill("1,08");
+  await main(page).getByLabel("Taux de change", { exact: true }).fill("26 000");
   await page.getByRole("button", { name: "Ajouter", exact: true }).click();
-  // 12,345 reads as twelve thousand three hundred forty-five dollars.
-  await expect(page.getByTestId("trip-total")).toHaveText("11 430,56 €");
+  await expect(page.getByTestId("trip-total")).toHaveText("50,00 €");
 
+  await page.getByRole("link", { name: "Modifier" }).click();
+  await page.getByRole("button", { name: "Supprimer le voyage" }).click();
+  await page.getByRole("button", { name: "Supprimer", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Mes voyages" })).toBeVisible();
+});
+
+test("suggests the official rate and keeps it when saving", async ({ page }) => {
+  const name = `Taux ${Date.now()}`;
+  await signIn(page);
+  await page.getByRole("link", { name: "Nouveau voyage" }).click();
+  await main(page).getByLabel("Nom", { exact: true }).fill(name);
+  await page.getByRole("button", { name: "Créer le voyage" }).click();
+  await expect(page.getByRole("heading", { name })).toBeVisible();
+
+  await page.getByRole("link", { name: "Ajouter une dépense" }).click();
+  await main(page).getByLabel("Date", { exact: true }).fill("2025-03-20");
+  await main(page).getByLabel("Devise", { exact: true }).selectOption("JPY");
+  await expect(main(page).getByLabel("Taux de change", { exact: true })).toHaveValue("160");
+  await expect(main(page).getByTestId("rate-status")).toHaveText("Taux officiel du 20 mars 2025.");
+
+  // Typing a rate makes it manual, and the official one can be restored.
+  await main(page).getByLabel("Taux de change", { exact: true }).fill("150");
+  await expect(main(page).getByTestId("rate-status")).toContainText("Taux saisi à la main.");
+  await main(page).getByRole("button", { name: "Utiliser le taux officiel (160)" }).click();
+  await expect(main(page).getByLabel("Taux de change", { exact: true })).toHaveValue("160");
+
+  await main(page).getByLabel("Montant", { exact: true }).fill("3 850");
+  await expect(main(page).getByTestId("converted")).toHaveText("≈ 24,06 €");
+  await main(page).getByLabel("Libellé", { exact: true }).fill("Sushiro");
+  await page.getByRole("button", { name: "Ajouter", exact: true }).click();
+  await expect(page.getByTestId("trip-total")).toHaveText("24,06 €");
+
+  await page.getByRole("link", { name: /Sushiro/ }).click();
+  await expect(main(page).getByTestId("rate-status")).toHaveText("Taux officiel du 20 mars 2025.");
+
+  await page.getByRole("link", { name: "TEV" }).click();
+  await page.getByRole("link", { name: new RegExp(name) }).click();
   await page.getByRole("link", { name: "Modifier" }).click();
   await page.getByRole("button", { name: "Supprimer le voyage" }).click();
   await page.getByRole("button", { name: "Supprimer", exact: true }).click();

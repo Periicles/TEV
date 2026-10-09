@@ -61,6 +61,8 @@ export const expenseInput = z.object({
   currency: currencyCode,
   /** Units of `currency` for one unit of the trip's base currency; required for a foreign currency. */
   exchangeRate: z.number().positive().finite().nullable(),
+  /** Whether `exchangeRate` is the official rate for `date` (checked by the caller) or typed in. */
+  rateSource: z.enum(["manual", "official"]).optional(),
   categoryId: id.nullable(),
   paymentMethod: z.string().trim().max(50).nullable(),
   notes: z.string().trim().max(1000).nullable(),
@@ -297,7 +299,7 @@ async function prepareExpense(
       currency: data.currency,
       baseAmountMinor,
       exchangeRate: String(rate),
-      rateSource: sameCurrency ? ("same" as const) : ("manual" as const),
+      rateSource: sameCurrency ? ("same" as const) : (data.rateSource ?? "manual"),
       paymentMethod: data.paymentMethod || null,
       notes: data.notes || null,
     },

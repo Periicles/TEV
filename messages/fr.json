@@ -93,7 +93,12 @@
     "save": "Enregistrer",
     "delete": "Supprimer la dépense",
     "deleteTitle": "Supprimer cette dépense ?",
-    "deleteDescription": "Cette action est définitive."
+    "deleteDescription": "Cette action est définitive.",
+    "rateLoading": "Recherche du taux officiel…",
+    "rateOfficial": "Taux officiel du {date}.",
+    "rateManual": "Taux saisi à la main.",
+    "rateUnavailable": "Pas de taux officiel pour cette devise à cette date : saisis-le.",
+    "useOfficialRate": "Utiliser le taux officiel ({rate})"
   },
   "paymentMethods": {
     "card": "Carte",
