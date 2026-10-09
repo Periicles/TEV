@@ -77,7 +77,7 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
           <Card>
             <CardHeader>
               <CardDescription>{t("total")}</CardDescription>
-              <CardTitle className="text-3xl tabular-nums" data-testid="trip-total">
+              <CardTitle className="neon-text text-3xl tabular-nums" data-testid="trip-total">
                 {money(totalMinor)}
               </CardTitle>
               {participantCount > 1 && (
