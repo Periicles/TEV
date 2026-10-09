@@ -85,8 +85,6 @@ describe.skipIf(!process.env.DATABASE_URL)("spreadsheet import", () => {
     }
     // Choosing a payer turns payer tracking on for the trip.
     expect(details.trackPayers).toBe(true);
-    for (const e of details.expenses) {
-    }
 
     const categories = await listCategories(owner);
     const extras = categories.filter((c) => c.name === "Extras");
