@@ -53,7 +53,7 @@ export default async function Home() {
                   <CardHeader>
                     <div className="flex items-start justify-between gap-4">
                       <CardTitle>{trip.name}</CardTitle>
-                      <span className="font-semibold tabular-nums">
+                      <span className="neon-text font-semibold tabular-nums">
                         {formatMoney(trip.totalMinor, trip.baseCurrency, locale)}
                       </span>
                     </div>
