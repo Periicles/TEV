@@ -4,6 +4,7 @@
     "tagline": "Suivi des dépenses de voyage."
   },
   "preferences": {
+    "title": "Préférences",
     "language": "Langue",
     "languageAuto": "Automatique",
     "theme": "Thème",

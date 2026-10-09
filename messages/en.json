@@ -4,6 +4,7 @@
     "tagline": "Travel expense tracking."
   },
   "preferences": {
+    "title": "Preferences",
     "language": "Language",
     "languageAuto": "Automatic",
     "theme": "Theme",
