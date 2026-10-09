@@ -95,7 +95,8 @@ export const expense = pgTable(
     baseAmountMinor: bigint("base_amount_minor", { mode: "number" }).notNull(),
     /** Units of `currency` for one unit of the base currency (1 EUR = 161.56 JPY → 161.56). */
     exchangeRate: numeric("exchange_rate", { precision: 20, scale: 10 }).notNull(),
-    rateSource: text("rate_source", { enum: ["same", "manual", "ecb"] }).notNull(),
+    /** `official`: fetched from the rates API for the expense's date; `manual`: typed in. */
+    rateSource: text("rate_source", { enum: ["same", "manual", "official"] }).notNull(),
     paymentMethod: text("payment_method"),
     notes: text("notes"),
     ...timestamps,
@@ -147,3 +148,21 @@ export const expenseParticipantRelations = relations(expenseParticipant, ({ one 
     references: [participant.id],
   }),
 }));
+
+/**
+ * Official rates already fetched, keyed by the date asked for (a weekend maps to the last published
+ * rate, kept in `rateDate`). Past rates never change, so each one is fetched once.
+ */
+export const exchangeRate = pgTable(
+  "exchange_rate",
+  {
+    requestedDate: date("requested_date").notNull(),
+    base: char("base", { length: 3 }).notNull(),
+    quote: char("quote", { length: 3 }).notNull(),
+    /** Units of `quote` for one unit of `base`. */
+    rate: numeric("rate", { precision: 20, scale: 10 }).notNull(),
+    rateDate: date("rate_date").notNull(),
+    fetchedAt: timestamp("fetched_at").defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.requestedDate, table.base, table.quote] })],
+);
