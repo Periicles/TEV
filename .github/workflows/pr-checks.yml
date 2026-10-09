@@ -1,0 +1,60 @@
+name: PR checks
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  conventions:
+    runs-on: ubuntu-latest
+    env:
+      CC_REGEX: '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._/-]+\))?!?: [^ ].*$'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check branch names
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ "$BASE_REF" != "main" ]; then
+            echo "::error::Pull requests must target 'main' (got '$BASE_REF')."
+            exit 1
+          fi
+          if ! printf '%s' "$HEAD_REF" | grep -Eq '^(feature|fix|docs|chore|refactor|test|ci|build|perf|style)/[a-z0-9][a-z0-9._-]*$'; then
+            echo "::error::Branch '$HEAD_REF' must be named <type>/<kebab-case>, see CONTRIBUTING.md."
+            exit 1
+          fi
+
+      - name: Check PR title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if ! printf '%s' "$TITLE" | grep -Eq "$CC_REGEX"; then
+            echo "::error::PR title must follow Conventional Commits, e.g. 'feat: add x'."
+            exit 1
+          fi
+
+      - name: Check commit messages
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          status=0
+          while IFS= read -r line; do
+            sha="${line%% *}"; subject="${line#* }"
+            if ! printf '%s' "$subject" | grep -Eq "$CC_REGEX"; then
+              echo "::error::Commit $sha does not follow Conventional Commits: '$subject'"
+              status=1
+            elif [ "${#subject}" -gt 100 ]; then
+              echo "::error::Commit $sha header is longer than 100 characters."
+              status=1
+            fi
+          done < <(git log --no-merges --format='%h %s' "$BASE_SHA..$HEAD_SHA")
+          exit $status
+        shell: bash
