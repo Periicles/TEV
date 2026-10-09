@@ -45,6 +45,10 @@ export const tripInput = z
     endDate: isoDate.nullable(),
     /** Record who paid each expense and show who owes whom. */
     trackPayers: z.boolean().default(false),
+    /** Optional budget, in minor units of the base currency. */
+    budgetMinor: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).nullable().default(null),
+    /** Show each day's total in the expense list. */
+    showDailyTotals: z.boolean().default(false),
     participants: z
       .array(z.object({ id: id.optional(), name: z.string().trim().min(1).max(50) }))
       .min(1)
@@ -101,6 +105,7 @@ export async function listTrips(userId: string) {
       id: trip.id,
       name: trip.name,
       baseCurrency: trip.baseCurrency,
+      budgetMinor: trip.budgetMinor,
       startDate: trip.startDate,
       endDate: trip.endDate,
       totalMinor: sql<number>`coalesce(sum(${expense.baseAmountMinor}), 0)`.mapWith(Number),
@@ -176,6 +181,8 @@ export async function createTrip(userId: string, input: TripInput) {
         startDate: data.startDate,
         endDate: data.endDate,
         trackPayers: data.trackPayers,
+        budgetMinor: data.budgetMinor,
+        showDailyTotals: data.showDailyTotals,
       })
       .returning();
     await tx
@@ -242,6 +249,8 @@ export async function updateTrip(userId: string, tripId: string, input: TripInpu
         startDate: data.startDate,
         endDate: data.endDate,
         trackPayers: data.trackPayers,
+        budgetMinor: data.budgetMinor,
+        showDailyTotals: data.showDailyTotals,
       })
       .where(eq(trip.id, current.id))
       .returning();

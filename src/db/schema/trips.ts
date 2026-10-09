@@ -39,9 +39,16 @@ export const trip = pgTable(
     endDate: date("end_date"),
     /** Whether expenses record who paid them, to work out who owes whom. Off by default. */
     trackPayers: boolean("track_payers").notNull().default(false),
+    /** Optional budget, in minor units of the base currency. */
+    budgetMinor: bigint("budget_minor", { mode: "number" }),
+    /** Whether the expense list shows each day's total. Off by default. */
+    showDailyTotals: boolean("show_daily_totals").notNull().default(false),
     ...timestamps,
   },
-  (table) => [index("trip_user_id_idx").on(table.userId)],
+  (table) => [
+    index("trip_user_id_idx").on(table.userId),
+    check("trip_budget_positive", sql`${table.budgetMinor} > 0`),
+  ],
 );
 
 /** People sharing a trip's expenses. Their count divides the totals. */

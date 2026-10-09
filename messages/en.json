@@ -60,8 +60,14 @@
     "participantsHint": "Expenses are split between them.",
     "participantName": "Name of participant {number}",
     "addParticipant": "Add a participant",
+    "options": "Options",
     "trackPayers": "Track who paid",
     "trackPayersHint": "Each expense records who paid it, and the trip works out who owes whom. Otherwise, expenses are simply shared.",
+    "showDailyTotals": "Daily totals",
+    "showDailyTotalsHint": "Shows each day's total in the expense list.",
+    "budget": "Budget",
+    "budgetHint": "Optional, in the base currency. The trip shows what was spent and what is left.",
+    "budgetPlaceholder": "None",
     "removeParticipant": "Remove {name}",
     "create": "Create trip",
     "save": "Save"
@@ -81,6 +87,12 @@
     "noPayer": "Record who paid each expense to work out who owes whom.",
     "unpaidExpenses": "{count, plural, one {# expense without a payer is not counted} other {# expenses without a payer are not counted}}.",
     "paidBy": "paid by {name}"
+  },
+  "budget": {
+    "label": "Budget spent",
+    "of": "Budget: {budget}",
+    "left": "{amount} left",
+    "over": "{amount} over budget"
   },
   "expenseForm": {
     "createTitle": "New expense",

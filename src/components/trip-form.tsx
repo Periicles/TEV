@@ -18,6 +18,9 @@ interface TripFormValues {
   startDate: string | null;
   endDate: string | null;
   trackPayers: boolean;
+  /** Budget as typed in the input, empty for none. */
+  budget: string;
+  showDailyTotals: boolean;
   participants: { id?: string; name: string }[];
 }
 
@@ -140,18 +143,44 @@ export function TripForm({
         )}
       </fieldset>
 
-      <div className="flex items-start gap-3">
-        <Checkbox
-          id={fieldId("trackPayers")}
-          name="trackPayers"
-          defaultChecked={trip.trackPayers}
-          className="mt-0.5"
-        />
-        <div className="grid gap-1">
-          <Label htmlFor={fieldId("trackPayers")}>{t("trackPayers")}</Label>
-          <p className="text-xs text-muted-foreground">{t("trackPayersHint")}</p>
-        </div>
-      </div>
+      <fieldset className="grid gap-4">
+        <legend className="mb-2 text-sm font-medium">{t("options")}</legend>
+        {(
+          [
+            ["trackPayers", trip.trackPayers],
+            ["showDailyTotals", trip.showDailyTotals],
+          ] as const
+        ).map(([option, checked]) => (
+          <div key={option} className="flex items-start gap-3">
+            <Checkbox
+              id={fieldId(option)}
+              name={option}
+              defaultChecked={checked}
+              className="mt-0.5"
+            />
+            <div className="grid gap-1">
+              <Label htmlFor={fieldId(option)}>{t(option)}</Label>
+              <p className="text-xs text-muted-foreground">{t(`${option}Hint`)}</p>
+            </div>
+          </div>
+        ))}
+        <Field
+          id={fieldId("budget")}
+          label={t("budget")}
+          hint={t("budgetHint")}
+          error={fields.budget}
+        >
+          <Input
+            id={fieldId("budget")}
+            name="budget"
+            inputMode="decimal"
+            autoComplete="off"
+            defaultValue={trip.budget}
+            placeholder={t("budgetPlaceholder")}
+            aria-invalid={Boolean(fields.budget)}
+          />
+        </Field>
+      </fieldset>
 
       {state.error && (
         <p role="alert" className="text-sm text-destructive">

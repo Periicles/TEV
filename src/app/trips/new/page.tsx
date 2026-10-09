@@ -22,6 +22,8 @@ export default async function NewTripPage() {
           startDate: null,
           endDate: null,
           trackPayers: false,
+          budget: "",
+          showDailyTotals: false,
           participants: [{ name: user.name }],
         }}
       />
