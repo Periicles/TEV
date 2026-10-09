@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dépenses de voyage</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#1c2330; --muted:#6b7585; --line:#e3e7ee; --accent:#2f6fed; --danger:#d64545;
+          --c1:#2f6fed; --c2:#e08a1e; --c3:#2a9d6f; --c4:#9b5de5; --c5:#d64545; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#12151b; --card:#1b2029; --text:#e8ecf3; --muted:#8c97a8; --line:#2a3140; --accent:#5b8dff; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.4 system-ui,-apple-system,Segoe UI,sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width:900px; margin:0 auto; padding:16px; }
+  h1 { font-size:20px; margin:0; }
+  header { display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:14px; }
+  input, select, button { font:inherit; color:inherit; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:8px 10px; }
+  button { cursor:pointer; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  button.link { border:none; background:none; color:var(--muted); padding:4px 6px; }
+  button.link:hover { color:var(--danger); }
+  form.add { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; }
+  form.add .span2 { grid-column:span 2; } form.add .span3 { grid-column:span 3; }
+  @media (max-width:640px){ form.add{grid-template-columns:1fr 1fr;} form.add .span2,form.add .span3{grid-column:span 2;} }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+  .stat small { color:var(--muted); display:block; }
+  .stat b { font-size:22px; }
+  .bar { height:8px; border-radius:4px; background:var(--line); overflow:hidden; margin-top:4px; }
+  .bar i { display:block; height:100%; }
+  table { width:100%; border-collapse:collapse; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:500; font-size:13px; cursor:pointer; user-select:none; }
+  td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .tag { font-size:12px; padding:2px 8px; border-radius:999px; color:#fff; white-space:nowrap; }
+  .muted { color:var(--muted); font-size:13px; }
+  .tablewrap { overflow-x:auto; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="row">
+      <h1>✈️ Dépenses</h1>
+      <select id="tripSel" aria-label="Voyage"></select>
+      <button id="newTrip">+ Voyage</button>
+      <button id="editTrip" title="Modifier le voyage">⚙︎</button>
+    </div>
+    <div class="row">
+      <button id="exportCsv">Export CSV</button>
+      <button id="exportJson">Sauvegarde</button>
+      <button id="importBtn">Importer</button>
+      <input type="file" id="importFile" accept=".json,.csv" hidden>
+    </div>
+  </header>
+
+  <section class="card stats" id="stats"></section>
+  <section class="card" id="cats"></section>
+
+  <section class="card">
+    <form class="add" id="form">
+      <input type="date" name="date" aria-label="Date">
+      <input name="label" placeholder="Dépense" required class="span2" aria-label="Dépense">
+      <input name="amount" type="number" step="0.01" min="0" placeholder="Montant" required aria-label="Montant">
+      <select name="category" aria-label="Catégorie"></select>
+      <input name="notes" placeholder="Notes" class="span3" aria-label="Notes">
+      <button class="primary span2" id="submitBtn">Ajouter</button>
+      <button type="button" id="cancelEdit" hidden>Annuler</button>
+    </form>
+  </section>
+
+  <section class="card tablewrap">
+    <table>
+      <thead><tr>
+        <th data-sort="date">Date</th><th data-sort="label">Dépense</th><th data-sort="category">Catégorie</th>
+        <th class="num" data-sort="amount">Total</th><th class="num" id="thPP">Par pers.</th><th></th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <p class="muted" id="empty" hidden>Aucune dépense pour l'instant.</p>
+  </section>
+  <p class="muted">Données enregistrées dans ce navigateur uniquement. Pense à « Sauvegarde » de temps en temps.</p>
+</main>
+
+<script>
+const KEY = "tev.v1";
+const COLORS = ["var(--c1)","var(--c2)","var(--c3)","var(--c4)","var(--c5)","#8a8f98","#17a2b8","#e83e8c"];
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+const SEED = () => ({
+  id: uid(), name: "Japon 2025", people: 2, currency: "€",
+  categories: ["Transport","Logement","Extras"],
+  expenses: [
+    ["2024-12-05","Billets d'avion",3175,"Transport"],["2025-01-25","Airbnb Tokyo",306.03,"Logement"],
+    ["2025-02-01","Airbnb Kyoto",512.76,"Logement"],["2025-02-02","Airbnb Tokyo",441.54,"Logement"],
+    ["2025-02-14","Places avion",123.98,"Transport"],["2025-03-07","Ryokan Kanazawa",366.64,"Logement"],
+    ["2025-03-09","Forfait Ubigi",31.5,"Extras"],["2025-03-13","Universal Studio Japan",124.31,"Extras"],
+    ["2025-03-20","Sushiro",23.83,"Extras"],["2025-03-20","Shinkansen Tokyo - Kanazawa",175.39,"Transport"],
+    ["2025-03-22","Transports Osaka",41.05,"Extras"],["2025-03-24","Shinkansen Kanazawa - Kyoto",94.82,"Transport"],
+    ["2025-03-28","Shinkansen Kyoto - Tokyo",178.75,"Transport"],["2025-03-28","JR Supplément Tokyo - Fujiyoshida",20.04,"Transport"],
+    ["","Revolut",485,"Extras"],["","Suica",74.35,"Extras"],["","Non défini",3.45,"Extras"],["","Cash",700,"Extras"],
+  ].map(([date,label,amount,category]) => ({id:uid(),date,label,amount,category,notes:""}))
+});
+
+let state, editingId = null, sort = {k:"date", dir:1};
+try { state = JSON.parse(localStorage.getItem(KEY)); } catch {}
+if (!state || !state.trips?.length) { const t = SEED(); state = {current:t.id, trips:[t]}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
+const trip = () => state.trips.find(t => t.id === state.current) || state.trips[0];
+const fmt = n => n.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2}) + " " + trip().currency;
+
+function render() {
+  const t = trip(), total = t.expenses.reduce((s,e)=>s+e.amount,0);
+  $("#tripSel").innerHTML = state.trips.map(x=>`<option value="${x.id}" ${x.id===t.id?"selected":""}>${esc(x.name)}</option>`).join("");
+  $("#form").category.innerHTML = t.categories.map(c=>`<option>${esc(c)}</option>`).join("");
+  $("#thPP").textContent = `Par pers. (${t.people})`;
+
+  const byCat = t.categories.map(c => ({c, v:t.expenses.filter(e=>e.category===c).reduce((s,e)=>s+e.amount,0)}));
+  $("#stats").innerHTML =
+    `<div class="stat"><small>Total</small><b>${fmt(total)}</b></div>
+     <div class="stat"><small>Par personne</small><b>${fmt(total/t.people)}</b></div>
+     <div class="stat"><small>Dépenses</small><b>${t.expenses.length}</b></div>`;
+  $("#cats").innerHTML = byCat.map((x,i)=>`<div style="margin-bottom:10px"><div class="row" style="justify-content:space-between">
+      <span>${esc(x.c)}</span><span><b>${fmt(x.v)}</b> <span class="muted">· ${fmt(x.v/t.people)}/pers · ${total?Math.round(x.v/total*100):0}%</span></span></div>
+      <div class="bar"><i style="width:${total?x.v/total*100:0}%;background:${COLORS[i%COLORS.length]}"></i></div></div>`).join("");
+
+  const rows = [...t.expenses].sort((a,b) => {
+    const A=a[sort.k], B=b[sort.k];
+    if (sort.k==="date") { if(!A&&!B) return 0; if(!A) return 1; if(!B) return -1; }  // sans date en bas
+    return (typeof A==="number" ? A-B : String(A).localeCompare(String(B))) * sort.dir;
+  });
+  $("#empty").hidden = rows.length>0;
+  $("#rows").innerHTML = rows.map(e => {
+    const i = t.categories.indexOf(e.category);
+    return `<tr><td>${e.date ? new Date(e.date+"T00:00").toLocaleDateString("fr-FR") : "–"}</td>
+      <td>${esc(e.label)}${e.notes?`<div class="muted">${esc(e.notes)}</div>`:""}</td>
+      <td><span class="tag" style="background:${COLORS[(i<0?5:i)%COLORS.length]}">${esc(e.category)}</span></td>
+      <td class="num">${fmt(e.amount)}</td><td class="num">${fmt(e.amount/t.people)}</td>
+      <td class="num"><button class="link" data-edit="${e.id}" title="Modifier">✎</button><button class="link" data-del="${e.id}" title="Supprimer">✕</button></td></tr>`;
+  }).join("");
+}
+
+$("#tripSel").onchange = e => { state.current = e.target.value; save(); cancelEdit(); render(); };
+$("#newTrip").onclick = () => {
+  const name = prompt("Nom du voyage ?"); if (!name) return;
+  const people = Math.max(1, parseInt(prompt("Nombre de personnes ?", "2")) || 1);
+  const currency = prompt("Devise ?", "€") || "€";
+  const t = {id:uid(), name, people, currency, categories:["Transport","Logement","Nourriture","Activités","Extras"], expenses:[]};
+  state.trips.push(t); state.current = t.id; save(); render();
+};
+$("#editTrip").onclick = () => {
+  const t = trip(), a = prompt("Que modifier ?\n1 = nom\n2 = nombre de personnes\n3 = catégories\n4 = supprimer ce voyage");
+  if (a==="1") t.name = prompt("Nom", t.name) || t.name;
+  else if (a==="2") t.people = Math.max(1, parseInt(prompt("Nombre de personnes", t.people)) || t.people);
+  else if (a==="3") { const c = prompt("Catégories (séparées par des virgules)", t.categories.join(", "));
+    if (c) t.categories = [...new Set(c.split(",").map(s=>s.trim()).filter(Boolean))]; }
+  else if (a==="4" && confirm(`Supprimer « ${t.name} » et ses dépenses ?`)) {
+    state.trips = state.trips.filter(x=>x!==t);
+    if (!state.trips.length) state.trips.push({id:uid(),name:"Nouveau voyage",people:1,currency:"€",categories:["Transport","Logement","Extras"],expenses:[]});
+    state.current = state.trips[0].id;
+  }
+  save(); render();
+};
+
+function cancelEdit() { editingId = null; $("#form").reset(); $("#submitBtn").textContent="Ajouter"; $("#cancelEdit").hidden=true; }
+$("#cancelEdit").onclick = cancelEdit;
+$("#form").onsubmit = ev => {
+  ev.preventDefault();
+  const f = ev.target, t = trip();
+  const data = {date:f.date.value, label:f.label.value.trim(), amount:parseFloat(f.amount.value), category:f.category.value, notes:f.notes.value.trim()};
+  if (!data.label || !isFinite(data.amount)) return;
+  if (editingId) Object.assign(t.expenses.find(e=>e.id===editingId), data); else t.expenses.push({id:uid(), ...data});
+  save(); cancelEdit(); render();
+  f.date.value = data.date;  // pratique pour saisir plusieurs dépenses le même jour
+};
+$("#rows").onclick = ev => {
+  const t = trip(), b = ev.target.closest("button"); if (!b) return;
+  if (b.dataset.del && confirm("Supprimer cette dépense ?")) { t.expenses = t.expenses.filter(e=>e.id!==b.dataset.del); save(); render(); }
+  if (b.dataset.edit) {
+    const e = t.expenses.find(x=>x.id===b.dataset.edit), f = $("#form");
+    editingId = e.id; f.date.value=e.date; f.label.value=e.label; f.amount.value=e.amount; f.category.value=e.category; f.notes.value=e.notes;
+    $("#submitBtn").textContent="Enregistrer"; $("#cancelEdit").hidden=false; f.label.focus(); scrollTo({top:0,behavior:"smooth"});
+  }
+};
+document.querySelectorAll("th[data-sort]").forEach(th => th.onclick = () => {
+  const k = th.dataset.sort; sort = {k, dir: sort.k===k ? -sort.dir : 1}; render();
+});
+
+function download(name, text, type) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text],{type})); a.download = name; a.click(); URL.revokeObjectURL(a.href);
+}
+$("#exportJson").onclick = () => download("depenses-sauvegarde.json", JSON.stringify(state,null,1), "application/json");
+$("#exportCsv").onclick = () => {
+  const t = trip(), q = v => `"${String(v).replace(/"/g,'""')}"`;
+  const lines = [["Date","Dépense","Total","Par personne","Catégorie","Notes"].join(";")].concat(
+    t.expenses.map(e => [e.date, q(e.label), String(e.amount).replace(".",","), (e.amount/t.people).toFixed(2).replace(".",","), q(e.category), q(e.notes)].join(";")));
+  download(`${t.name}.csv`, "﻿"+lines.join("\n"), "text/csv");
+};
+$("#importBtn").onclick = () => $("#importFile").click();
+$("#importFile").onchange = async ev => {
+  const file = ev.target.files[0]; ev.target.value = ""; if (!file) return;
+  const text = await file.text();
+  try {
+    if (file.name.endsWith(".json")) {
+      const d = JSON.parse(text); if (!d.trips?.length) throw 0;
+      if (!confirm("Remplacer toutes les données actuelles par cette sauvegarde ?")) return;
+      state = d;
+    } else {  // CSV: Date;Dépense;Total;...;Catégorie;Notes (séparateur ; ou ,)
+      const sep = text.split("\n")[0].includes(";") ? ";" : ",", t = trip();
+      const parse = l => { const out=[]; let c="",q=false; for (const ch of l) { if(ch=='"') q=!q; else if(ch===sep&&!q){out.push(c);c="";} else c+=ch; } out.push(c); return out; };
+      text.replace(/^﻿/,"").split(/\r?\n/).slice(1).filter(Boolean).forEach(l => {
+        const [date,label,amount,,category,notes] = parse(l), n = parseFloat(String(amount).replace(",","."));
+        if (!label || !isFinite(n)) return;
+        const cat = category || "Extras"; if (!t.categories.includes(cat)) t.categories.push(cat);
+        t.expenses.push({id:uid(), date:/^\d{4}-\d\d-\d\d$/.test(date)?date:"", label, amount:n, category:cat, notes:notes||""});
+      });
+    }
+    save(); render();
+  } catch { alert("Fichier non reconnu."); }
+};
+
+render();
+</script>
+</body>
+</html>
