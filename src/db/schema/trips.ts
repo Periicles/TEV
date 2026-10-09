@@ -97,6 +97,11 @@ export const expense = pgTable(
     exchangeRate: numeric("exchange_rate", { precision: 20, scale: 10 }).notNull(),
     /** `official`: fetched from the rates API for the expense's date; `manual`: typed in. */
     rateSource: text("rate_source", { enum: ["same", "manual", "official"] }).notNull(),
+    /**
+     * Participant who paid, for settling up; `null` when unknown (expenses entered or imported
+     * before it was tracked), which leaves the expense out of the balances.
+     */
+    paidBy: uuid("paid_by").references(() => participant.id, { onDelete: "set null" }),
     paymentMethod: text("payment_method"),
     notes: text("notes"),
     ...timestamps,
@@ -138,6 +143,7 @@ export const participantRelations = relations(participant, ({ one }) => ({
 export const expenseRelations = relations(expense, ({ one, many }) => ({
   trip: one(trip, { fields: [expense.tripId], references: [trip.id] }),
   category: one(category, { fields: [expense.categoryId], references: [category.id] }),
+  payer: one(participant, { fields: [expense.paidBy], references: [participant.id] }),
   participants: many(expenseParticipant),
 }));
 

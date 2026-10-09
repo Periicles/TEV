@@ -29,6 +29,13 @@
       "when": 1791548806850,
       "tag": "0003_exchange-rate-cache",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791556216664,
+      "tag": "0004_expense-payer",
+      "breakpoints": true
     }
   ]
 }
