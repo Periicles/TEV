@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { summarizeTrip, type SummaryExpense } from "./summary";
+import { settleUp, summarizeTrip, type SummaryExpense } from "./summary";
 
 const people = [{ id: "a" }, { id: "b" }, { id: "c" }];
 
-function expenses(...items: Omit<SummaryExpense, "id" | "date">[]): SummaryExpense[] {
+function expenses(
+  ...items: (Omit<SummaryExpense, "id" | "date" | "paidBy"> & { paidBy?: string | null })[]
+): SummaryExpense[] {
   return items.map((item, index) => ({
     id: `e${String(index).padStart(3, "0")}`,
     date: "2025-03-20",
+    paidBy: null,
     ...item,
   }));
 }
@@ -89,5 +92,78 @@ describe("summarizeTrip", () => {
       b: 0,
       c: 0,
     });
+  });
+
+  it("balances what each participant paid against their share", () => {
+    const summary = summarizeTrip(
+      people,
+      expenses(
+        // a pays 90 for everyone: a is owed 60, b and c owe 30 each.
+        { baseAmountMinor: 90, categoryId: null, participantIds: ["a", "b", "c"], paidBy: "a" },
+        // b pays 40 for b and c: b is owed 20 by c.
+        { baseAmountMinor: 40, categoryId: null, participantIds: ["b", "c"], paidBy: "b" },
+        // Nobody recorded as payer: shared, but left out of the balances.
+        { baseAmountMinor: 1000, categoryId: null, participantIds: ["a", "b", "c"] },
+      ),
+    );
+
+    expect(Object.fromEntries(summary.balances)).toEqual({ a: 60, b: -10, c: -50 });
+    expect(summary.unpaidCount).toBe(1);
+    expect(summary.totalMinor).toBe(1130);
+  });
+
+  it("keeps balances summing to zero with rounding cents", () => {
+    const summary = summarizeTrip(
+      people,
+      expenses(
+        { baseAmountMinor: 100, categoryId: null, participantIds: ["a", "b", "c"], paidBy: "c" },
+        { baseAmountMinor: 7, categoryId: null, participantIds: ["a", "b", "c"], paidBy: "a" },
+      ),
+    );
+    const balances = [...summary.balances.values()];
+
+    expect(balances.reduce((sum, b) => sum + b, 0)).toBe(0);
+  });
+});
+
+describe("settleUp", () => {
+  it("evens out balances in few transfers, largest first", () => {
+    expect(
+      settleUp(
+        new Map([
+          ["a", 60],
+          ["b", -10],
+          ["c", -50],
+        ]),
+      ),
+    ).toEqual([
+      { from: "c", to: "a", amountMinor: 50 },
+      { from: "b", to: "a", amountMinor: 10 },
+    ]);
+    expect(
+      settleUp(
+        new Map([
+          ["a", 100],
+          ["b", 50],
+          ["c", -120],
+          ["d", -30],
+        ]),
+      ),
+    ).toEqual([
+      { from: "c", to: "a", amountMinor: 100 },
+      { from: "d", to: "b", amountMinor: 30 },
+      { from: "c", to: "b", amountMinor: 20 },
+    ]);
+  });
+
+  it("has nothing to settle when everyone is even", () => {
+    expect(
+      settleUp(
+        new Map([
+          ["a", 0],
+          ["b", 0],
+        ]),
+      ),
+    ).toEqual([]);
   });
 });
