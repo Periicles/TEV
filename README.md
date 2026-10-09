@@ -64,6 +64,9 @@ CI runs all three on every pull request.
   participant) and the trip page turns what everyone paid minus their share into the few transfers
   that settle the trip ("Léa owes Paul 412,30 €"). Expenses without a payer are shared but left out
   of these balances. Turning tracking off hides payers without deleting them.
+- Trip **options**, all off by default: _Track who paid_ (above), a **budget** in the base currency
+  (a bar on the trip and its card shows what is left, red once exceeded) and **daily totals** in
+  the expense list.
 - Amounts are stored as **integers in the currency's minor unit** (cents for EUR, yen for JPY,
   thousandths for KWD), never as floating-point numbers.
 - An expense keeps its original amount and currency, plus its amount in the base currency and the
