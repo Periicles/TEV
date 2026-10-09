@@ -13,7 +13,7 @@ A personal web app to track travel expenses in multiple currencies, replacing a 
 
 ## Getting started
 
-Requirements: Node.js 22+ and pnpm (`corepack enable`).
+Requirements: Node.js 24+ and pnpm (`corepack enable`).
 
 ```bash
 pnpm install
