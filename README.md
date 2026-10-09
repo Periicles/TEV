@@ -5,7 +5,8 @@ A personal web app to track travel expenses in multiple currencies, replacing a 
 ## Stack
 
 - [Next.js](https://nextjs.org) (App Router) + React + TypeScript
-- Tailwind CSS
+- Tailwind CSS, themes with [next-themes](https://github.com/pacocoursey/next-themes) (system, light, dark)
+- [next-intl](https://next-intl.dev) for translations (French by default, English)
 - PostgreSQL ([Neon](https://neon.tech)) with [Drizzle ORM](https://orm.drizzle.team) — _coming soon_
 - [Better Auth](https://www.better-auth.com) (email + password, no public sign-up) — _coming soon_
 - Hosted on [Vercel](https://vercel.com)
@@ -32,6 +33,14 @@ Then open http://localhost:3000.
 | `pnpm test`         | Run unit tests with Vitest       |
 | `pnpm format`       | Format with Prettier             |
 | `pnpm format:check` | Check formatting                 |
+
+## Internationalization
+
+UI strings live in `messages/<language>.json`; French (`fr.json`) is the reference catalog and a test
+checks that every catalog has the same keys. Never hard-code user-facing text.
+
+The language is resolved per request: the user's explicit choice (cookie), then the device languages
+(`Accept-Language`), then French. Dates and numbers use the device locale and time zone.
 
 ## Contributing
 
