@@ -75,6 +75,11 @@ CI runs all three on every pull request.
   are cached in the `exchange_rate` table; a currency without official rate falls back to the last
   rate typed in the trip. `EXCHANGE_RATES_URL` overrides the API (end-to-end tests use a stub with
   fixed rates) and `EXCHANGE_RATES_URL=off` disables it.
+- **Categories** are shared by all of a user's trips and managed on `/categories` (from the
+  preferences menu): add, rename (a renamed built-in category stops being translated), reorder,
+  delete (expenses become uncategorized; the last category stays) and pick one of the eight neon
+  palette colors. A category without a chosen color follows its position in the palette; moving one
+  pins the colors so charts never repaint.
 - Every query is scoped to the signed-in user (`src/server/trips.ts`); someone else's trip behaves
   as if it did not exist.
 - Next.js keeps visited pages in the DOM (hidden): form field ids derive from the record they edit,

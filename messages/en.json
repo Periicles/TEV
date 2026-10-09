@@ -9,7 +9,8 @@
     "theme": "Theme",
     "themeSystem": "System",
     "themeLight": "Light",
-    "themeDark": "Dark"
+    "themeDark": "Dark",
+    "categories": "Categories"
   },
   "languages": {
     "fr": "Français",
@@ -181,6 +182,23 @@
     "groceries": "Groceries",
     "other": "Other"
   },
+  "categoriesPage": {
+    "title": "Categories",
+    "description": "They are shared by all your trips. Their color shows in the ring and the expense list.",
+    "name": "Name of the {name} category",
+    "color": "Color {number}",
+    "colors": "Color of {name}",
+    "moveUp": "Move {name} up",
+    "moveDown": "Move {name} down",
+    "delete": "Delete {name}",
+    "deleteTitle": "Delete “{name}”?",
+    "deleteDescription": "Its expenses stay, without a category.",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete",
+    "add": "Add",
+    "newName": "New category",
+    "newNamePlaceholder": "Souvenirs"
+  },
   "errors": {
     "required": "Required.",
     "invalidAmount": "Invalid amount for this currency.",
@@ -193,6 +211,7 @@
     "noParticipant": "Choose at least one participant.",
     "notFound": "Not found.",
     "unexpected": "Something went wrong. Please try again.",
-    "importInvalid": "The file has invalid values: check the selected columns."
+    "importInvalid": "The file has invalid values: check the selected columns.",
+    "lastCategory": "Keep at least one category."
   }
 }

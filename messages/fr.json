@@ -9,7 +9,8 @@
     "theme": "Thème",
     "themeSystem": "Système",
     "themeLight": "Clair",
-    "themeDark": "Sombre"
+    "themeDark": "Sombre",
+    "categories": "Catégories"
   },
   "languages": {
     "fr": "Français",
@@ -181,6 +182,23 @@
     "groceries": "Courses",
     "other": "Autres"
   },
+  "categoriesPage": {
+    "title": "Catégories",
+    "description": "Elles servent à tous tes voyages. Leur couleur se retrouve dans l'anneau et la liste des dépenses.",
+    "name": "Nom de la catégorie {name}",
+    "color": "Couleur {number}",
+    "colors": "Couleur de {name}",
+    "moveUp": "Monter {name}",
+    "moveDown": "Descendre {name}",
+    "delete": "Supprimer {name}",
+    "deleteTitle": "Supprimer « {name} » ?",
+    "deleteDescription": "Ses dépenses resteront, sans catégorie.",
+    "cancel": "Annuler",
+    "confirmDelete": "Supprimer",
+    "add": "Ajouter",
+    "newName": "Nouvelle catégorie",
+    "newNamePlaceholder": "Souvenirs"
+  },
   "errors": {
     "required": "Champ obligatoire.",
     "invalidAmount": "Montant invalide pour cette devise.",
@@ -193,6 +211,7 @@
     "noParticipant": "Choisis au moins un participant.",
     "notFound": "Introuvable.",
     "unexpected": "Une erreur est survenue. Réessaie.",
-    "importInvalid": "Le fichier contient des valeurs invalides : vérifie les colonnes choisies."
+    "importInvalid": "Le fichier contient des valeurs invalides : vérifie les colonnes choisies.",
+    "lastCategory": "Garde au moins une catégorie."
   }
 }

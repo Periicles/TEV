@@ -1,16 +1,8 @@
+import { ColorDot } from "@/components/color-dot";
 import { ringArcs } from "@/lib/ring-chart";
 
-/** Number of `--chart-*` colors in globals.css; further categories reuse them. */
-const PALETTE_SIZE = 8;
 const RADIUS = 40;
 const STROKE = 7;
-
-/** A category's chart color: by its position among the user's categories, grey without one. */
-export function chartColor(colorIndex: number | null) {
-  return colorIndex === null
-    ? "var(--muted-foreground)"
-    : `var(--chart-${(colorIndex % PALETTE_SIZE) + 1})`;
-}
 
 export interface RingItem {
   key: string;
@@ -19,8 +11,8 @@ export interface RingItem {
   /** Formatted amount and share, shown in the legend. */
   amount: string;
   percent: string;
-  /** Index in the chart palette, the same on every trip; `null` for grey (no category). */
-  colorIndex: number | null;
+  /** CSS color of the arc and its legend dot. */
+  color: string;
 }
 
 /** Shares as glowing arcs on a ring, with a legend. Rendered on the server, without JavaScript. */
@@ -29,7 +21,7 @@ export function CategoryRing({ id, items }: { id: string; items: RingItem[] }) {
     items.map((item) => item.value),
     { radius: RADIUS, strokeWidth: STROKE, gap: 5 },
   );
-  const colors = items.map((item) => chartColor(item.colorIndex));
+  const colors = items.map((item) => item.color);
   // Next keeps visited pages in the DOM: the filter id must differ from one trip to another.
   const glow = `glow-${id}`;
 
@@ -73,14 +65,7 @@ export function CategoryRing({ id, items }: { id: string; items: RingItem[] }) {
               data-testid={`category-${item.label}`}
             >
               <span className="flex min-w-0 items-center gap-2.5">
-                <span
-                  className="size-2 shrink-0 rounded-full"
-                  style={{
-                    backgroundColor: colors[index],
-                    boxShadow: `0 0 6px ${colors[index]}`,
-                  }}
-                  aria-hidden
-                />
+                <ColorDot color={colors[index]} />
                 <span className="truncate">{item.label}</span>
               </span>
               <span className="shrink-0">

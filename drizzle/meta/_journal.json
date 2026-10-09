@@ -43,6 +43,13 @@
       "when": 1791557224892,
       "tag": "0005_trip-track-payers",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791559174637,
+      "tag": "0006_category-color",
+      "breakpoints": true
     }
   ]
 }
