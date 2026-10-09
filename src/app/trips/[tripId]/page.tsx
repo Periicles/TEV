@@ -2,7 +2,9 @@ import { ChevronLeftIcon, PencilIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { categoryLabel } from "@/components/category-label";
-import { CategoryRing, chartColor } from "@/components/category-ring";
+import { CategoryRing } from "@/components/category-ring";
+import { ColorDot } from "@/components/color-dot";
+import { chartColor, colorNumber } from "@/lib/category-colors";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMoney, splitEvenly } from "@/lib/money";
@@ -40,9 +42,9 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
       tCategories,
       t("uncategorized"),
     );
-  const colorIndex = (id: string | null) => {
-    const position = categories.findIndex((c) => c.id === id);
-    return position >= 0 ? position : null;
+  const categoryColor = (id: string | null) => {
+    const found = categories.find((c) => c.id === id);
+    return chartColor(found ? colorNumber(found) : null);
   };
   const categoryTotals = [...byCategory.entries()].sort((a, b) => b[1] - a[1]);
   const days = Map.groupBy(trip.expenses, (e) => e.date);
@@ -144,7 +146,7 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
                   value: amount,
                   amount: money(amount),
                   percent: format.number(amount / totalMinor, { style: "percent" }),
-                  colorIndex: colorIndex(categoryId),
+                  color: categoryColor(categoryId),
                 }))}
               />
             </section>
@@ -176,11 +178,7 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
                       href={`/trips/${trip.id}/expenses/${e.id}`}
                       className="flex items-center justify-between gap-3 px-3 py-2.5 hover:bg-accent/50 lg:px-4"
                     >
-                      <span
-                        className="hidden size-2 shrink-0 rounded-full lg:block"
-                        style={{ backgroundColor: chartColor(colorIndex(e.categoryId)) }}
-                        aria-hidden
-                      />
+                      <ColorDot color={categoryColor(e.categoryId)} />
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium">{e.label}</p>
                         <p className="truncate text-xs text-muted-foreground">
