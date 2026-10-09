@@ -74,6 +74,28 @@ CI runs all three on every pull request.
 - Next.js keeps visited pages in the DOM (hidden): form field ids derive from the record they edit,
   and end-to-end tests look fields up inside the visible `<main>`.
 
+## Spreadsheet import
+
+`/trips/import` creates a trip from an `.xlsx` file, one row per expense. The file is read in the
+browser ([read-excel-file](https://www.npmjs.com/package/read-excel-file)) and converted by
+`src/lib/spreadsheet.ts`, so nothing is sent before the preview is confirmed:
+
+- Columns are guessed from their titles (French or English: _Date_, _Libellé_/_Expense_,
+  _Montant_/_Total cost_, _Catégorie_, _Notes_); an untitled column repeating a few values is taken
+  as the category. Every guess can be changed.
+- A _per person_ column gives the number of travellers (amount ÷ share). Each imported expense is
+  split between all of them.
+- Dates can be real dates, Excel serial numbers or text in the device's order (`20/03/2025`). Rows
+  without one (`-`) get a date chosen in the form, the latest date of the file by default.
+- Rows without a label or a positive amount, such as a totals row, are listed and skipped.
+- Spreadsheet categories are matched to existing ones by name or meaning (_Logement_ → lodging);
+  the others are created, unless mapped by hand.
+- Amounts are in the trip's base currency. The server saves the trip and all its expenses in one
+  transaction (`src/server/import.ts`).
+
+`e2e/fixtures/budget.xlsx` is a small fictional file with the same layout as the original
+spreadsheet (formulas, `-` dates, a totals row, a side table); unit and end-to-end tests use it.
+
 ## Accounts and database
 
 The app only has a login page: there is no sign-up. Accounts are created by the owner, directly in
