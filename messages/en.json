@@ -1,7 +1,6 @@
 {
   "app": {
-    "name": "TEV",
-    "tagline": "Travel expense tracking."
+    "name": "TEV"
   },
   "preferences": {
     "title": "Preferences",
@@ -15,5 +14,20 @@
   "languages": {
     "fr": "Français",
     "en": "English"
+  },
+  "home": {
+    "greeting": "Hello {name}",
+    "tagline": "Travel expense tracking."
+  },
+  "auth": {
+    "title": "Sign in",
+    "description": "Access your trips.",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "invalidCredentials": "Wrong email or password.",
+    "tooManyAttempts": "Too many attempts. Try again in a minute.",
+    "unexpectedError": "Something went wrong. Please try again.",
+    "signOut": "Sign out"
   }
 }

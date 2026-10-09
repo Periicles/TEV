@@ -1,13 +1,15 @@
 "use client";
 
-import { Settings2Icon } from "lucide-react";
+import { LogOutIcon, Settings2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useSyncExternalStore, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -16,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { languages } from "@/i18n/config";
 import { setLanguagePreference } from "@/i18n/actions";
+import { authClient } from "@/lib/auth-client";
 
 const themes = ["system", "light", "dark"] as const;
 const themeLabels = { system: "themeSystem", light: "themeLight", dark: "themeDark" } as const;
@@ -29,8 +32,15 @@ const useHydrated = () =>
     () => false,
   );
 
-export function PreferencesMenu({ languagePreference }: { languagePreference: string }) {
+export function PreferencesMenu({
+  languagePreference,
+  signedIn,
+}: {
+  languagePreference: string;
+  signedIn: boolean;
+}) {
   const t = useTranslations();
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const hydrated = useHydrated();
   const [pending, startTransition] = useTransition();
@@ -71,6 +81,22 @@ export function PreferencesMenu({ languagePreference }: { languagePreference: st
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
+
+        {signedIn && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={async () => {
+                await authClient.signOut();
+                router.replace("/login");
+                router.refresh();
+              }}
+            >
+              <LogOutIcon />
+              {t("auth.signOut")}
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
