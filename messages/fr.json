@@ -43,7 +43,8 @@
     "deleteTitle": "Supprimer « {name} » ?",
     "deleteDescription": "Le voyage et toutes ses dépenses seront définitivement supprimés.",
     "cancel": "Annuler",
-    "confirmDelete": "Supprimer"
+    "confirmDelete": "Supprimer",
+    "import": "Importer"
   },
   "tripForm": {
     "createTitle": "Nouveau voyage",
@@ -100,6 +101,52 @@
     "rateUnavailable": "Pas de taux officiel pour cette devise à cette date : saisis-le.",
     "useOfficialRate": "Utiliser le taux officiel ({rate})"
   },
+  "import": {
+    "title": "Importer un tableur",
+    "description": "Crée un voyage à partir d'un fichier Excel : une ligne par dépense, avec au moins un libellé et un montant.",
+    "file": "Fichier .xlsx",
+    "fileHint": "Le fichier est lu dans ton navigateur : rien n'est enregistré avant la validation.",
+    "readError": "Ce fichier n'a pas pu être lu. Enregistre-le au format .xlsx et réessaie.",
+    "sheet": "Feuille",
+    "columns": "Colonnes",
+    "roles": {
+      "date": "Date",
+      "label": "Libellé",
+      "amount": "Montant",
+      "category": "Catégorie",
+      "notes": "Notes",
+      "perPerson": "Par personne"
+    },
+    "noColumn": "—",
+    "columnsRequired": "Choisis au moins les colonnes du libellé et du montant.",
+    "trip": "Voyage",
+    "name": "Nom",
+    "currency": "Devise",
+    "currencyHint": "Devise de base du voyage, dans laquelle sont exprimés les montants du fichier.",
+    "startDate": "Début",
+    "endDate": "Fin",
+    "participants": "Participants",
+    "participantsHint": "Chaque dépense importée est répartie entre eux.",
+    "participantName": "Prénom du participant {number}",
+    "removeParticipant": "Retirer le participant {number}",
+    "addParticipant": "Ajouter un participant",
+    "categories": "Catégories",
+    "newCategory": "Créer « {name} »",
+    "noCategory": "Aucune",
+    "preview": "Aperçu",
+    "summary": "{count, plural, =0 {Aucune dépense} one {# dépense} other {# dépenses}} · Total {total}",
+    "undatedDate": "Date des lignes sans date",
+    "undatedHint": "{count, plural, one {# ligne n'a} other {# lignes n'ont}} pas de date : {labels}.",
+    "noDate": "Sans date",
+    "skipped": "{count, plural, one {# ligne ignorée} other {# lignes ignorées}}",
+    "skippedRow": "Ligne {row} : {reason} ({cells})",
+    "reasons": {
+      "noLabel": "pas de libellé",
+      "noAmount": "pas de montant",
+      "invalidAmount": "montant invalide ou négatif"
+    },
+    "submit": "{count, plural, =0 {Importer} one {Importer # dépense} other {Importer # dépenses}}"
+  },
   "paymentMethods": {
     "card": "Carte",
     "cash": "Espèces"
@@ -123,6 +170,7 @@
     "baseCurrencyLocked": "La devise de base ne peut plus changer une fois des dépenses saisies.",
     "noParticipant": "Choisis au moins un participant.",
     "notFound": "Introuvable.",
-    "unexpected": "Une erreur est survenue. Réessaie."
+    "unexpected": "Une erreur est survenue. Réessaie.",
+    "importInvalid": "Le fichier contient des valeurs invalides : vérifie les colonnes choisies."
   }
 }
