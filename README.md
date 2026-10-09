@@ -56,8 +56,9 @@ CI runs all three on every pull request.
 ## Trips and expenses
 
 - A trip has a **base currency** (EUR by default) and **participants**. Each expense is split evenly
-  between the participants it is shared with (all of them by default); a rounding remainder goes to
-  the first participants in the trip's order, so shares always add up to the total.
+  between the participants it is shared with (all of them by default). A rounding cent goes to
+  whoever has received the fewest so far, so shares always add up to the total and nobody pays more
+  than a cent of rounding over another on a trip.
 - Amounts are stored as **integers in the currency's minor unit** (cents for EUR, yen for JPY,
   thousandths for KWD), never as floating-point numbers.
 - An expense keeps its original amount and currency, plus its amount in the base currency and the
