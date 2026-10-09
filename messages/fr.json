@@ -1,0 +1,18 @@
+{
+  "app": {
+    "name": "TEV",
+    "tagline": "Suivi des dépenses de voyage."
+  },
+  "preferences": {
+    "language": "Langue",
+    "languageAuto": "Automatique",
+    "theme": "Thème",
+    "themeSystem": "Système",
+    "themeLight": "Clair",
+    "themeDark": "Sombre"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English"
+  }
+}
