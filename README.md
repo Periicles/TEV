@@ -71,8 +71,15 @@ and clean up after themselves; CI runs them against its own PostgreSQL service.
   gets its own Neon branch, so previews never touch production data.
 - Neon's free plan allows 10 branches per project: delete old preview branches in the Neon console
   if a preview deployment fails to create one.
-- To create your account in production, run the script against the production database from your
-  machine (environment variables take precedence over `.env.local`):
+- To create your account (or reset a password) in production without a local machine, use the
+  **Manage user** workflow:
+  1. In _Settings → Secrets and variables → Actions_, add `PROD_DATABASE_URL` (Neon's
+     `DATABASE_URL_UNPOOLED` for production) and `TEV_USER_PASSWORD` (the password to set).
+  2. In _Actions → Manage user → Run workflow_, pick `create` (email + name) or `password` (email).
+  3. Delete the `TEV_USER_PASSWORD` secret once the run succeeded.
+
+  From a machine with the repository, the scripts work too (environment variables take precedence
+  over `.env.local`):
 
   ```bash
   DATABASE_URL="<production DATABASE_URL_UNPOOLED>" pnpm user:create you@example.com "Your Name"
