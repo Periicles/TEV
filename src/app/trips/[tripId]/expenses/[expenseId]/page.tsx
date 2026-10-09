@@ -36,6 +36,7 @@ export default async function EditExpensePage({
             expense.currency === trip.baseCurrency
               ? ""
               : decimalInput(Number(expense.exchangeRate), data.locale),
+          rateSource: expense.rateSource,
           categoryId: expense.categoryId,
           paymentMethod: expense.paymentMethod,
           notes: expense.notes,

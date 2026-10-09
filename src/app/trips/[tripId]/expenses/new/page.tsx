@@ -31,6 +31,7 @@ export default async function NewExpensePage({
           amount: "",
           currency: data.lastCurrency,
           exchangeRate: data.lastRates[data.lastCurrency] ?? "",
+          rateSource: "manual",
           categoryId: null,
           paymentMethod: null,
           notes: null,

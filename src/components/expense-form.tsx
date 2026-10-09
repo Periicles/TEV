@@ -1,8 +1,8 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
-import { startTransition, useActionState, useState } from "react";
-import { saveExpense, type FormState } from "@/app/trips/actions";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
+import { startTransition, useActionState, useEffect, useRef, useState } from "react";
+import { saveExpense, suggestRate, type FormState } from "@/app/trips/actions";
 import { categoryLabel } from "@/components/category-label";
 import { Field } from "@/components/field";
 import { Button } from "@/components/ui/button";
@@ -20,11 +20,14 @@ export interface ExpenseFormValues {
   amount: string;
   currency: string;
   exchangeRate: string;
+  rateSource: "same" | "manual" | "official";
   categoryId: string | null;
   paymentMethod: string | null;
   notes: string | null;
   participantIds: string[];
 }
+
+type Suggestion = { key: string; value: { rate: number; date: string } | null };
 
 function parseRate(input: string) {
   const value = Number(input.replace(/\s/g, "").replace(",", "."));
@@ -51,16 +54,50 @@ export function ExpenseForm({
   const tAll = useTranslations();
   const tCategories = useTranslations("categories");
   const locale = useLocale();
+  const format = useFormatter();
   const [state, action, pending] = useActionState<FormState, FormData>(saveExpense, {});
   const [amount, setAmount] = useState(expense.amount);
   const [currency, setCurrency] = useState(expense.currency);
+  const [date, setDate] = useState(expense.date);
   const [rate, setRate] = useState(expense.exchangeRate);
+  const [rateSource, setRateSource] = useState(
+    expense.rateSource === "official" ? "official" : "manual",
+  );
+  // A rate typed by hand is never replaced by a suggestion.
+  const rateTyped = useRef(expense.rateSource === "manual");
+  const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
   const fields = state.fields ?? {};
   // Next keeps visited pages in the DOM (hidden): ids derive from what the form edits so that the
   // forms of two pages never share one (useId() does not guarantee that across preserved pages).
   const prefix = expense.id ? `expense-${expense.id}` : `new-expense-${trip.id}`;
   const fieldId = (name: string) => `${prefix}-${name}`;
   const foreign = currency !== trip.baseCurrency;
+  const suggestionKey = `${currency}|${date}`;
+  const current = suggestion?.key === suggestionKey ? suggestion.value : undefined;
+  const rateInput = (value: number) =>
+    new Intl.NumberFormat(locale, { useGrouping: false, maximumFractionDigits: 10 }).format(value);
+
+  // Looks the official rate up for the chosen currency and date.
+  useEffect(() => {
+    if (!foreign || !date) return;
+    let stale = false;
+    suggestRate(trip.baseCurrency, currency, date).then(
+      (value) => {
+        if (stale) return;
+        setSuggestion({ key: `${currency}|${date}`, value });
+        if (value && !rateTyped.current) {
+          setRate(rateInput(value.rate));
+          setRateSource("official");
+        }
+      },
+      () => !stale && setSuggestion({ key: `${currency}|${date}`, value: null }),
+    );
+    return () => {
+      stale = true;
+    };
+    // rateInput only depends on the locale.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [foreign, currency, date, trip.baseCurrency]);
 
   const amountMinor = parseAmount(amount, currency);
   const rateValue = parseRate(rate);
@@ -107,8 +144,11 @@ export function ExpenseForm({
             name="currency"
             value={currency}
             onChange={(event) => {
+              // A new currency starts from its last rate until the official one arrives.
               setCurrency(event.target.value);
               setRate(lastRates[event.target.value] ?? "");
+              setRateSource("manual");
+              rateTyped.current = false;
             }}
             className="w-28"
           >
@@ -133,11 +173,47 @@ export function ExpenseForm({
               inputMode="decimal"
               autoComplete="off"
               value={rate}
-              onChange={(event) => setRate(event.target.value)}
+              onChange={(event) => {
+                setRate(event.target.value);
+                setRateSource("manual");
+                rateTyped.current = true;
+              }}
               aria-invalid={Boolean(fields.exchangeRate)}
             />
             <span className="shrink-0 text-muted-foreground">{currency}</span>
           </div>
+          <input type="hidden" name="rateSource" value={rateSource} />
+          <p className="text-xs text-muted-foreground" data-testid="rate-status">
+            {current === undefined
+              ? t("rateLoading")
+              : rateSource === "official" && current
+                ? t("rateOfficial", {
+                    date: format.dateTime(new Date(`${current.date}T00:00:00Z`), {
+                      timeZone: "UTC",
+                      dateStyle: "long",
+                    }),
+                  })
+                : current
+                  ? t("rateManual")
+                  : t("rateUnavailable")}
+            {current && rateSource === "manual" && (
+              <>
+                {" "}
+                <Button
+                  type="button"
+                  variant="link"
+                  className="h-auto p-0 text-xs"
+                  onClick={() => {
+                    setRate(rateInput(current.rate));
+                    setRateSource("official");
+                    rateTyped.current = false;
+                  }}
+                >
+                  {t("useOfficialRate", { rate: rateInput(current.rate) })}
+                </Button>
+              </>
+            )}
+          </p>
           {preview && (
             <p className="text-sm text-muted-foreground" data-testid="converted">
               {t("converted", { amount: preview })}
@@ -158,7 +234,13 @@ export function ExpenseForm({
 
       <div className="grid grid-cols-2 gap-3">
         <Field id={fieldId("date")} label={t("date")} error={fields.date}>
-          <Input id={fieldId("date")} name="date" type="date" defaultValue={expense.date} />
+          <Input
+            id={fieldId("date")}
+            name="date"
+            type="date"
+            value={date}
+            onChange={(event) => setDate(event.target.value)}
+          />
         </Field>
         <Field id={fieldId("categoryId")} label={t("category")}>
           <NativeSelect
