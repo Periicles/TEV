@@ -147,6 +147,15 @@
     },
     "submit": "{count, plural, =0 {Importer} one {Importer # dépense} other {Importer # dépenses}}"
   },
+  "status": {
+    "notFoundTitle": "Page introuvable",
+    "notFoundDescription": "Ce voyage ou cette page n'existe pas, ou plus.",
+    "errorTitle": "Une erreur est survenue",
+    "errorDescription": "La page n'a pas pu s'afficher. Réessaie dans un instant.",
+    "errorReference": "Référence : {digest}",
+    "retry": "Réessayer",
+    "home": "Retour à mes voyages"
+  },
   "paymentMethods": {
     "card": "Carte",
     "cash": "Espèces"
