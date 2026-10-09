@@ -79,6 +79,13 @@ test("tracks a trip's expenses in several currencies, split between participants
   await expect(page.getByTestId("trip-per-person")).toHaveText("Par personne : 195,24 €");
   await expect(page.getByTestId("share-Paul")).toHaveText("378,56 €");
   await expect(page.getByTestId("share-Léa")).toHaveText("11,91 €");
+  // Paul paid both (the first participant pays by default): Léa owes him her share of the sushi.
+  await expect(page.getByTestId("settlement")).toHaveText(/^Léa doit à Paul\s*11,91\s€$/);
+  await expect(
+    main(page)
+      .getByText(/payé par Paul/)
+      .first(),
+  ).toBeVisible();
   await expect(page.getByTestId("category-Logement")).toHaveText(/^Logement366,64\s€ · 94\s%$/);
   await expect(page.getByTestId("category-Restauration")).toHaveText(
     /^Restauration23,83\s€ · 6\s%$/,
