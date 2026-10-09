@@ -147,6 +147,15 @@
     },
     "submit": "{count, plural, =0 {Import} one {Import # expense} other {Import # expenses}}"
   },
+  "status": {
+    "notFoundTitle": "Page not found",
+    "notFoundDescription": "This trip or page does not exist, or no longer does.",
+    "errorTitle": "Something went wrong",
+    "errorDescription": "The page could not be displayed. Try again in a moment.",
+    "errorReference": "Reference: {digest}",
+    "retry": "Try again",
+    "home": "Back to my trips"
+  },
   "paymentMethods": {
     "card": "Card",
     "cash": "Cash"
