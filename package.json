@@ -15,7 +15,9 @@
     "vercel-build": "pnpm db:migrate && next build",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "user:create": "tsx --env-file-if-exists=.env.local scripts/user.ts create",
+    "user:password": "tsx --env-file-if-exists=.env.local scripts/user.ts password"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.9.0",
