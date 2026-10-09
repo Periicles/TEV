@@ -59,6 +59,8 @@
     "participantsHint": "Expenses are split between them.",
     "participantName": "Name of participant {number}",
     "addParticipant": "Add a participant",
+    "trackPayers": "Track who paid",
+    "trackPayersHint": "Each expense records who paid it, and the trip works out who owes whom. Otherwise, expenses are simply shared.",
     "removeParticipant": "Remove {name}",
     "create": "Create trip",
     "save": "Save"
@@ -71,7 +73,13 @@
     "expenses": "Expenses",
     "noExpenses": "No expenses yet.",
     "addExpense": "Add an expense",
-    "uncategorized": "Uncategorized"
+    "uncategorized": "Uncategorized",
+    "settleUp": "Settling up",
+    "owes": "{from} owes {to}",
+    "allSquare": "Everyone is square.",
+    "noPayer": "Record who paid each expense to work out who owes whom.",
+    "unpaidExpenses": "{count, plural, one {# expense without a payer is not counted} other {# expenses without a payer are not counted}}.",
+    "paidBy": "paid by {name}"
   },
   "expenseForm": {
     "createTitle": "New expense",
@@ -86,6 +94,8 @@
     "date": "Date",
     "category": "Category",
     "noCategory": "None",
+    "paidBy": "Paid by",
+    "paidByUnknown": "Not recorded",
     "participants": "Split between",
     "paymentMethod": "Payment method",
     "paymentMethodPlaceholder": "Optional",
@@ -130,6 +140,9 @@
     "participantName": "Name of participant {number}",
     "removeParticipant": "Remove participant {number}",
     "addParticipant": "Add a participant",
+    "paidBy": "Paid by",
+    "paidByHint": "For every expense in the file, can be changed later. Choosing someone turns on tracking who paid for this trip.",
+    "paidByUnknown": "Not recorded",
     "categories": "Categories",
     "newCategory": "Create “{name}”",
     "noCategory": "None",
@@ -146,6 +159,15 @@
       "invalidAmount": "invalid or negative amount"
     },
     "submit": "{count, plural, =0 {Import} one {Import # expense} other {Import # expenses}}"
+  },
+  "status": {
+    "notFoundTitle": "Page not found",
+    "notFoundDescription": "This trip or page does not exist, or no longer does.",
+    "errorTitle": "Something went wrong",
+    "errorDescription": "The page could not be displayed. Try again in a moment.",
+    "errorReference": "Reference: {digest}",
+    "retry": "Try again",
+    "home": "Back to my trips"
   },
   "paymentMethods": {
     "card": "Card",
@@ -166,7 +188,7 @@
     "rateRequired": "Enter the exchange rate.",
     "amountTooSmall": "Amount too small once converted.",
     "endBeforeStart": "The end is before the start.",
-    "participantInUse": "This participant already shares expenses: remove them from those expenses first.",
+    "participantInUse": "This participant paid for or shares expenses: remove them from those expenses first.",
     "baseCurrencyLocked": "The base currency can no longer change once expenses exist.",
     "noParticipant": "Choose at least one participant.",
     "notFound": "Not found.",

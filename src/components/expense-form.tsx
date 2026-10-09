@@ -25,6 +25,7 @@ export interface ExpenseFormValues {
   paymentMethod: string | null;
   notes: string | null;
   participantIds: string[];
+  paidBy: string | null;
 }
 
 type Suggestion = { key: string; value: { rate: number; date: string } | null };
@@ -42,7 +43,12 @@ export function ExpenseForm({
   lastRates,
   paymentMethods,
 }: {
-  trip: { id: string; baseCurrency: string; participants: { id: string; name: string }[] };
+  trip: {
+    id: string;
+    baseCurrency: string;
+    trackPayers: boolean;
+    participants: { id: string; name: string }[];
+  };
   expense: ExpenseFormValues;
   categories: { id: string; key: string | null; name: string | null }[];
   currencies: { code: string; label: string }[];
@@ -284,6 +290,32 @@ export function ExpenseForm({
       )}
       {trip.participants.length === 1 && (
         <input type="hidden" name="participantIds" value={trip.participants[0].id} />
+      )}
+
+      {trip.trackPayers && trip.participants.length > 1 ? (
+        <Field id={fieldId("paidBy")} label={t("paidBy")}>
+          <NativeSelect
+            id={fieldId("paidBy")}
+            name="paidBy"
+            defaultValue={expense.paidBy ?? ""}
+            wrapperClassName="w-full"
+          >
+            {trip.participants.map((p) => (
+              <NativeSelectOption key={p.id} value={p.id}>
+                {p.name}
+              </NativeSelectOption>
+            ))}
+            <NativeSelectOption value="">{t("paidByUnknown")}</NativeSelectOption>
+          </NativeSelect>
+        </Field>
+      ) : (
+        // Not asked: a lone participant paid; otherwise the payer (if any) is kept as it was, so
+        // turning tracking off and on again loses nothing.
+        <input
+          type="hidden"
+          name="paidBy"
+          value={trip.trackPayers ? trip.participants[0].id : (expense.paidBy ?? "")}
+        />
       )}
 
       <Field id={fieldId("paymentMethod")} label={t("paymentMethod")}>

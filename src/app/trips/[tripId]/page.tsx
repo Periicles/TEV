@@ -6,6 +6,7 @@ import { CategoryRing, chartColor } from "@/components/category-ring";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMoney, splitEvenly } from "@/lib/money";
+import { settleUp } from "@/lib/summary";
 import { loadTripPage } from "@/server/pages";
 
 export default async function TripPage({ params }: PageProps<"/trips/[tripId]">) {
@@ -28,7 +29,10 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
       day: "numeric",
       month: "long",
     });
-  const { totalMinor, byParticipant, byCategory } = trip.summary;
+  const { totalMinor, byParticipant, byCategory, balances, unpaidCount } = trip.summary;
+  const settlements = settleUp(balances);
+  const participantName = (id: string) => trip.participants.find((p) => p.id === id)?.name ?? "";
+  const anyPaid = trip.expenses.length > unpaidCount;
   const participantCount = trip.participants.length;
   const categoryName = (id: string | null) =>
     categoryLabel(
@@ -97,6 +101,38 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
             )}
           </Card>
 
+          {trip.trackPayers && participantCount > 1 && trip.expenses.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{t("settleUp")}</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-2 text-sm">
+                {settlements.map((s) => (
+                  <p
+                    key={`${s.from}-${s.to}`}
+                    className="flex justify-between gap-4 tabular-nums"
+                    data-testid="settlement"
+                  >
+                    <span>
+                      {t("owes", { from: participantName(s.from), to: participantName(s.to) })}
+                    </span>
+                    <span className="font-medium">{money(s.amountMinor)}</span>
+                  </p>
+                ))}
+                {settlements.length === 0 && (
+                  <p className="text-muted-foreground" data-testid="settlement">
+                    {anyPaid ? t("allSquare") : t("noPayer")}
+                  </p>
+                )}
+                {anyPaid && unpaidCount > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {t("unpaidExpenses", { count: unpaidCount })}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {categoryTotals.length > 0 && (
             <section className="grid gap-3 lg:rounded-xl lg:border lg:p-6 lg:shadow-sm">
               <h2 className="font-semibold">{t("byCategory")}</h2>
@@ -151,6 +187,10 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
                           {[
                             categoryName(e.categoryId),
                             e.paymentMethod,
+                            trip.trackPayers &&
+                              participantCount > 1 &&
+                              e.paidBy &&
+                              t("paidBy", { name: participantName(e.paidBy) }),
                             e.participantIds.length < participantCount &&
                               trip.participants
                                 .filter((p) => e.participantIds.includes(p.id))

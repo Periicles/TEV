@@ -16,6 +16,8 @@ const CHUNK = 500;
 
 export const importInput = z.object({
   trip: tripInput,
+  /** Index in `trip.participants` of who paid every expense, or `null` when unknown. */
+  paidBy: z.number().int().nonnegative().nullable(),
   /** Categories to create, referenced by index from the expenses. */
   newCategories: z.array(z.string().trim().min(1).max(50)).max(50),
   expenses: z
@@ -32,7 +34,7 @@ export const importInput = z.object({
     .min(1)
     .max(MAX_EXPENSES),
 });
-export type ImportInput = z.infer<typeof importInput>;
+export type ImportInput = z.input<typeof importInput>;
 
 function chunks<T>(items: T[]) {
   return Array.from({ length: Math.ceil(items.length / CHUNK) }, (_, i) =>
@@ -45,6 +47,9 @@ export async function importTrip(userId: string, input: ImportInput) {
   // Built-in categories exist before expenses point to them.
   const existing = await listCategories(userId);
   const owned = new Set(existing.map((c) => c.id));
+  if (data.paidBy !== null && data.paidBy >= data.trip.participants.length) {
+    throw new NotFoundError();
+  }
   for (const e of data.expenses) {
     if (e.categoryId && !owned.has(e.categoryId)) throw new NotFoundError();
     if (e.newCategory !== null && e.newCategory >= data.newCategories.length) {
@@ -61,6 +66,8 @@ export async function importTrip(userId: string, input: ImportInput) {
         baseCurrency: data.trip.baseCurrency,
         startDate: data.trip.startDate,
         endDate: data.trip.endDate,
+        // Choosing who paid the imported expenses turns payer tracking on for the trip.
+        trackPayers: data.paidBy !== null,
       })
       .returning();
     const participants = await tx
@@ -89,8 +96,10 @@ export async function importTrip(userId: string, input: ImportInput) {
       categoryIds = inserted.map((c) => c.id);
     }
 
+    const paidBy = data.paidBy === null ? null : participants[data.paidBy].id;
     const values = data.expenses.map((e) => ({
       tripId: created.id,
+      paidBy,
       date: e.date,
       label: e.label,
       categoryId: e.newCategory !== null ? categoryIds[e.newCategory] : e.categoryId,

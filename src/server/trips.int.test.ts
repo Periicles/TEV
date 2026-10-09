@@ -56,6 +56,7 @@ function expenseOf(participantIds: string[], overrides: Partial<ExpenseInput> = 
     paymentMethod: null,
     notes: null,
     participantIds,
+    paidBy: null,
     ...overrides,
   };
 }
@@ -179,6 +180,62 @@ describe.skipIf(!process.env.DATABASE_URL)("trips and expenses", () => {
         participants: [{ id: lea.id, name: "Léa" }],
       }),
     ).rejects.toThrow(new InputError("baseCurrencyLocked"));
+  });
+
+  it("tracks who paid only when the trip asks for it", async () => {
+    const trip = await japanTrip();
+    expect(trip.trackPayers).toBe(false);
+    await updateTrip(owner, trip.id, {
+      name: trip.name,
+      baseCurrency: "EUR",
+      startDate: null,
+      endDate: null,
+      trackPayers: true,
+      participants: trip.participants.map((p) => ({ id: p.id, name: p.name })),
+    });
+    expect((await getTripDetails(owner, trip.id)).trackPayers).toBe(true);
+  });
+
+  it("records who paid and balances the trip", async () => {
+    const trip = await japanTrip();
+    const [paul, lea] = trip.participants;
+    await createExpense(
+      owner,
+      trip.id,
+      expenseOf([paul.id, lea.id], {
+        currency: "EUR",
+        exchangeRate: null,
+        amountMinor: 10000,
+        paidBy: lea.id,
+      }),
+    );
+    await createExpense(owner, trip.id, expenseOf([paul.id, lea.id], { currency: "EUR" }));
+
+    const { summary, expenses } = await getTripDetails(owner, trip.id);
+    expect(expenses.map((e) => e.paidBy).toSorted()).toEqual([lea.id, null].toSorted());
+    expect(Object.fromEntries(summary.balances)).toEqual({ [paul.id]: -5000, [lea.id]: 5000 });
+    expect(summary.unpaidCount).toBe(1);
+  });
+
+  it("refuses a payer from another trip and keeps participants who paid", async () => {
+    const trip = await japanTrip();
+    const other = await japanTrip();
+    const [paul, lea] = trip.participants;
+    await expect(
+      createExpense(owner, trip.id, expenseOf([paul.id], { paidBy: other.participants[0].id })),
+    ).rejects.toThrow(NotFoundError);
+
+    // Léa paid an expense shared by Paul only: she cannot be removed.
+    await createExpense(owner, trip.id, expenseOf([paul.id], { paidBy: lea.id }));
+    await expect(
+      updateTrip(owner, trip.id, {
+        name: trip.name,
+        baseCurrency: "EUR",
+        startDate: null,
+        endDate: null,
+        participants: [{ id: paul.id, name: "Paul" }],
+      }),
+    ).rejects.toThrow(new InputError("participantInUse"));
   });
 
   it("creates the built-in categories once", async () => {

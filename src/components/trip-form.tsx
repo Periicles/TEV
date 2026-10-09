@@ -6,7 +6,9 @@ import { startTransition, useActionState, useId, useState } from "react";
 import { saveTrip, type FormState } from "@/app/trips/actions";
 import { Field } from "@/components/field";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 
 interface TripFormValues {
@@ -15,6 +17,7 @@ interface TripFormValues {
   baseCurrency: string;
   startDate: string | null;
   endDate: string | null;
+  trackPayers: boolean;
   participants: { id?: string; name: string }[];
 }
 
@@ -136,6 +139,19 @@ export function TripForm({
           <p className="text-sm text-destructive">{tErrors(fields.participants)}</p>
         )}
       </fieldset>
+
+      <div className="flex items-start gap-3">
+        <Checkbox
+          id={fieldId("trackPayers")}
+          name="trackPayers"
+          defaultChecked={trip.trackPayers}
+          className="mt-0.5"
+        />
+        <div className="grid gap-1">
+          <Label htmlFor={fieldId("trackPayers")}>{t("trackPayers")}</Label>
+          <p className="text-xs text-muted-foreground">{t("trackPayersHint")}</p>
+        </div>
+      </div>
 
       {state.error && (
         <p role="alert" className="text-sm text-destructive">

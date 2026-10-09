@@ -41,6 +41,7 @@ export default async function EditExpensePage({
           paymentMethod: expense.paymentMethod,
           notes: expense.notes,
           participantIds: expense.participantIds,
+          paidBy: expense.paidBy,
         }}
       />
       <div className="mt-8 border-t pt-4">
