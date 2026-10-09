@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Suspense } from "react";
+import { AppHeader } from "@/components/app-header";
 import { LocaleProvider } from "@/components/locale-provider";
 import "./globals.css";
 
@@ -37,7 +38,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           disableTransitionOnChange
         >
           <Suspense>
-            <LocaleProvider>{children}</LocaleProvider>
+            <LocaleProvider>
+              <AppHeader />
+              {children}
+            </LocaleProvider>
           </Suspense>
         </ThemeProvider>
       </body>
