@@ -52,6 +52,7 @@ test("tracks a trip's expenses in several currencies, split between participants
   await main(page).getByLabel("Prénom du participant 1").fill("Paul");
   await page.getByRole("button", { name: "Ajouter un participant" }).click();
   await main(page).getByLabel("Prénom du participant 2").fill("Léa");
+  await main(page).getByLabel("Suivre qui a payé").check();
   await page.getByRole("button", { name: "Créer le voyage" }).click();
   await expect(page.getByRole("heading", { name })).toBeVisible();
 
@@ -124,11 +125,15 @@ test("keeps typed values and explains errors", async ({ page }) => {
   await signIn(page);
   await page.getByRole("link", { name: "Nouveau voyage" }).click();
   await main(page).getByLabel("Nom", { exact: true }).fill(name);
+  await page.getByRole("button", { name: "Ajouter un participant" }).click();
+  await main(page).getByLabel("Prénom du participant 2").fill("Léa");
   await page.getByRole("button", { name: "Créer le voyage" }).click();
   await expect(page.getByRole("heading", { name })).toBeVisible();
 
   // No official rate exists for this currency: it has to be typed in.
   await page.getByRole("link", { name: "Ajouter une dépense" }).click();
+  // Payer tracking is off by default: nobody is asked who paid.
+  await expect(main(page).getByLabel("Payé par")).toHaveCount(0);
   await main(page).getByLabel("Devise", { exact: true }).selectOption("VND");
   await expect(main(page).getByTestId("rate-status")).toHaveText(
     "Pas de taux officiel pour cette devise à cette date : saisis-le.",
@@ -143,6 +148,7 @@ test("keeps typed values and explains errors", async ({ page }) => {
   await main(page).getByLabel("Taux de change", { exact: true }).fill("26 000");
   await page.getByRole("button", { name: "Ajouter", exact: true }).click();
   await expect(page.getByTestId("trip-total")).toHaveText("50,00 €");
+  await expect(page.getByTestId("settlement")).toHaveCount(0);
 
   await page.getByRole("link", { name: "Modifier" }).click();
   await page.getByRole("button", { name: "Supprimer le voyage" }).click();

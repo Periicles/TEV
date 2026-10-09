@@ -83,6 +83,10 @@ describe.skipIf(!process.env.DATABASE_URL)("spreadsheet import", () => {
       expect(e.participantIds).toHaveLength(2);
       expect(e.paidBy).toBe(details.participants[1].id);
     }
+    // Choosing a payer turns payer tracking on for the trip.
+    expect(details.trackPayers).toBe(true);
+    for (const e of details.expenses) {
+    }
 
     const categories = await listCategories(owner);
     const extras = categories.filter((c) => c.name === "Extras");
@@ -107,6 +111,7 @@ describe.skipIf(!process.env.DATABASE_URL)("spreadsheet import", () => {
     const created = await importTrip(owner, input({ expenses }));
     const details = await getTripDetails(owner, created.id);
     expect(details.expenses).toHaveLength(1201);
+    expect(details.trackPayers).toBe(false);
     expect(details.summary.totalMinor).toBe(120100);
   });
 

@@ -59,6 +59,8 @@
     "participantsHint": "Expenses are split between them.",
     "participantName": "Name of participant {number}",
     "addParticipant": "Add a participant",
+    "trackPayers": "Track who paid",
+    "trackPayersHint": "Each expense records who paid it, and the trip works out who owes whom. Otherwise, expenses are simply shared.",
     "removeParticipant": "Remove {name}",
     "create": "Create trip",
     "save": "Save"
@@ -139,7 +141,7 @@
     "removeParticipant": "Remove participant {number}",
     "addParticipant": "Add a participant",
     "paidBy": "Paid by",
-    "paidByHint": "For every expense in the file; can be changed later, expense by expense.",
+    "paidByHint": "For every expense in the file, can be changed later. Choosing someone turns on tracking who paid for this trip.",
     "paidByUnknown": "Not recorded",
     "categories": "Categories",
     "newCategory": "Create “{name}”",

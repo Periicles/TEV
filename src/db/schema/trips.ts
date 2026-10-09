@@ -1,6 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import {
   bigint,
+  boolean,
   char,
   check,
   date,
@@ -36,6 +37,8 @@ export const trip = pgTable(
     baseCurrency: char("base_currency", { length: 3 }).notNull().default("EUR"),
     startDate: date("start_date"),
     endDate: date("end_date"),
+    /** Whether expenses record who paid them, to work out who owes whom. Off by default. */
+    trackPayers: boolean("track_payers").notNull().default(false),
     ...timestamps,
   },
   (table) => [index("trip_user_id_idx").on(table.userId)],

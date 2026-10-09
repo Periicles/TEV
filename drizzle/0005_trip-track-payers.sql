@@ -1,0 +1,1 @@
+ALTER TABLE "trip" ADD COLUMN "track_payers" boolean DEFAULT false NOT NULL;

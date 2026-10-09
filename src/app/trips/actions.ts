@@ -65,6 +65,7 @@ export async function saveTrip(_state: FormState, form: FormData): Promise<FormS
     baseCurrency: text(form, "baseCurrency"),
     startDate: optional(form, "startDate"),
     endDate: optional(form, "endDate"),
+    trackPayers: form.get("trackPayers") === "on",
     participants: names
       .map((name, index) => ({ id: ids[index] || undefined, name }))
       .filter((p) => p.name || p.id),

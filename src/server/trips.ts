@@ -43,6 +43,8 @@ export const tripInput = z
     baseCurrency: currencyCode,
     startDate: isoDate.nullable(),
     endDate: isoDate.nullable(),
+    /** Record who paid each expense and show who owes whom. */
+    trackPayers: z.boolean().default(false),
     participants: z
       .array(z.object({ id: id.optional(), name: z.string().trim().min(1).max(50) }))
       .min(1)
@@ -52,7 +54,7 @@ export const tripInput = z
     path: ["endDate"],
     message: "endBeforeStart",
   });
-export type TripInput = z.infer<typeof tripInput>;
+export type TripInput = z.input<typeof tripInput>;
 
 export const expenseInput = z.object({
   date: isoDate,
@@ -173,6 +175,7 @@ export async function createTrip(userId: string, input: TripInput) {
         baseCurrency: data.baseCurrency,
         startDate: data.startDate,
         endDate: data.endDate,
+        trackPayers: data.trackPayers,
       })
       .returning();
     await tx
@@ -238,6 +241,7 @@ export async function updateTrip(userId: string, tripId: string, input: TripInpu
         baseCurrency: data.baseCurrency,
         startDate: data.startDate,
         endDate: data.endDate,
+        trackPayers: data.trackPayers,
       })
       .where(eq(trip.id, current.id))
       .returning();

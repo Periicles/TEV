@@ -36,7 +36,7 @@ export default async function NewExpensePage({
           paymentMethod: null,
           notes: null,
           participantIds: trip.participants.map((p) => p.id),
-          paidBy: data.lastPayer,
+          paidBy: trip.trackPayers ? data.lastPayer : null,
         }}
       />
     </main>

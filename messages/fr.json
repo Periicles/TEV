@@ -59,6 +59,8 @@
     "participantsHint": "Les dépenses sont réparties entre eux.",
     "participantName": "Prénom du participant {number}",
     "addParticipant": "Ajouter un participant",
+    "trackPayers": "Suivre qui a payé",
+    "trackPayersHint": "Chaque dépense indique qui l'a payée, et le voyage calcule qui doit combien à qui. Sinon, les dépenses sont simplement partagées.",
     "removeParticipant": "Retirer {name}",
     "create": "Créer le voyage",
     "save": "Enregistrer"
@@ -139,7 +141,7 @@
     "removeParticipant": "Retirer le participant {number}",
     "addParticipant": "Ajouter un participant",
     "paidBy": "Payé par",
-    "paidByHint": "Pour toutes les dépenses du fichier ; modifiable ensuite dépense par dépense.",
+    "paidByHint": "Pour toutes les dépenses du fichier, modifiable ensuite. Choisir quelqu'un active le suivi de qui a payé pour ce voyage.",
     "paidByUnknown": "Non renseigné",
     "categories": "Catégories",
     "newCategory": "Créer « {name} »",

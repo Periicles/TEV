@@ -182,6 +182,20 @@ describe.skipIf(!process.env.DATABASE_URL)("trips and expenses", () => {
     ).rejects.toThrow(new InputError("baseCurrencyLocked"));
   });
 
+  it("tracks who paid only when the trip asks for it", async () => {
+    const trip = await japanTrip();
+    expect(trip.trackPayers).toBe(false);
+    await updateTrip(owner, trip.id, {
+      name: trip.name,
+      baseCurrency: "EUR",
+      startDate: null,
+      endDate: null,
+      trackPayers: true,
+      participants: trip.participants.map((p) => ({ id: p.id, name: p.name })),
+    });
+    expect((await getTripDetails(owner, trip.id)).trackPayers).toBe(true);
+  });
+
   it("records who paid and balances the trip", async () => {
     const trip = await japanTrip();
     const [paul, lea] = trip.participants;

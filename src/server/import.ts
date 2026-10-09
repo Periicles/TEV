@@ -34,7 +34,7 @@ export const importInput = z.object({
     .min(1)
     .max(MAX_EXPENSES),
 });
-export type ImportInput = z.infer<typeof importInput>;
+export type ImportInput = z.input<typeof importInput>;
 
 function chunks<T>(items: T[]) {
   return Array.from({ length: Math.ceil(items.length / CHUNK) }, (_, i) =>
@@ -66,6 +66,8 @@ export async function importTrip(userId: string, input: ImportInput) {
         baseCurrency: data.trip.baseCurrency,
         startDate: data.trip.startDate,
         endDate: data.trip.endDate,
+        // Choosing who paid the imported expenses turns payer tracking on for the trip.
+        trackPayers: data.paidBy !== null,
       })
       .returning();
     const participants = await tx

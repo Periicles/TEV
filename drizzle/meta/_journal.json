@@ -36,6 +36,13 @@
       "when": 1791556216664,
       "tag": "0004_expense-payer",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791557224892,
+      "tag": "0005_trip-track-payers",
+      "breakpoints": true
     }
   ]
 }

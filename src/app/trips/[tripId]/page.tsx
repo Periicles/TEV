@@ -101,7 +101,7 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
             )}
           </Card>
 
-          {participantCount > 1 && trip.expenses.length > 0 && (
+          {trip.trackPayers && participantCount > 1 && trip.expenses.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">{t("settleUp")}</CardTitle>
@@ -187,7 +187,8 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
                           {[
                             categoryName(e.categoryId),
                             e.paymentMethod,
-                            participantCount > 1 &&
+                            trip.trackPayers &&
+                              participantCount > 1 &&
                               e.paidBy &&
                               t("paidBy", { name: participantName(e.paidBy) }),
                             e.participantIds.length < participantCount &&

@@ -21,6 +21,7 @@ export default async function NewTripPage() {
           baseCurrency: "EUR",
           startDate: null,
           endDate: null,
+          trackPayers: false,
           participants: [{ name: user.name }],
         }}
       />
