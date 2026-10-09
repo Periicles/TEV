@@ -1,7 +1,26 @@
+# dependencies
 node_modules/
-dist/
+.pnp
+.pnp.*
+
+# testing
 coverage/
+
+# next.js
+.next/
+out/
+build/
+next-env.d.ts
+*.tsbuildinfo
+
+# env files
 .env*
 !.env.example
+
+# vercel
+.vercel
+
+# misc
 .DS_Store
+*.pem
 *.log
