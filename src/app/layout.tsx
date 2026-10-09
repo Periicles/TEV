@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Suspense } from "react";
 import { AppHeader } from "@/components/app-header";
+import { FlashToaster } from "@/components/flash-toaster";
 import { LocaleProvider } from "@/components/locale-provider";
 import "./globals.css";
 
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <LocaleProvider>
               <AppHeader />
               {children}
+              <FlashToaster />
             </LocaleProvider>
           </Suspense>
         </ThemeProvider>

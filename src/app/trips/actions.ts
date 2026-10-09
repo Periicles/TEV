@@ -1,7 +1,9 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { flash } from "@/app/flash";
 import type { ErrorCode } from "@/i18n/errors";
 import { isCurrency, parseAmount } from "@/lib/money";
 import { requireSession } from "@/lib/session";
@@ -15,6 +17,8 @@ import {
   getTrip,
   InputError,
   NotFoundError,
+  restoreExpense,
+  restoreTrip,
   updateExpense,
   updateTrip,
 } from "@/server/trips";
@@ -85,13 +89,23 @@ export async function saveTrip(_state: FormState, form: FormData): Promise<FormS
   } catch (error) {
     return failure(error);
   }
+  await flash({ kind: tripId ? "tripSaved" : "tripCreated" });
   redirect(`/trips/${savedId}`);
 }
 
 export async function removeTrip(tripId: string) {
   const { user } = await requireSession();
   await deleteTrip(user.id, tripId);
+  await flash({ kind: "tripDeleted", id: tripId });
   redirect("/");
+}
+
+/** Brings a deleted trip back; returns its id, or `null` when it is gone for good. */
+export async function undoRemoveTrip(tripId: string): Promise<string | null> {
+  const { user } = await requireSession();
+  const restored = await restoreTrip(user.id, tripId).catch(() => null);
+  revalidatePath("/", "layout");
+  return restored;
 }
 
 export async function saveExpense(_state: FormState, form: FormData): Promise<FormState> {
@@ -141,13 +155,23 @@ export async function saveExpense(_state: FormState, form: FormData): Promise<Fo
     }
     return failure(error);
   }
+  await flash({ kind: expenseId ? "expenseSaved" : "expenseAdded" });
   redirect(`/trips/${tripId}`);
 }
 
 export async function removeExpense(expenseId: string) {
   const { user } = await requireSession();
   const tripId = await deleteExpense(user.id, expenseId);
+  await flash({ kind: "expenseDeleted", id: expenseId });
   redirect(`/trips/${tripId}`);
+}
+
+/** Brings a deleted expense back; returns its trip's id, or `null` when it is gone for good. */
+export async function undoRemoveExpense(expenseId: string): Promise<string | null> {
+  const { user } = await requireSession();
+  const tripId = await restoreExpense(user.id, expenseId).catch(() => null);
+  revalidatePath("/", "layout");
+  return tripId;
 }
 
 /** The official rate suggested for an expense, or `null` when there is none. */
@@ -174,5 +198,6 @@ export async function importSpreadsheet(input: ImportInput): Promise<FormState> 
     }
     return failure(error);
   }
+  await flash({ kind: "tripImported", count: input.expenses.length });
   redirect(`/trips/${tripId}`);
 }
