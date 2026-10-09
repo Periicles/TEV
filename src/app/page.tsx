@@ -1,4 +1,4 @@
-import { PlusIcon } from "lucide-react";
+import { FileSpreadsheetIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
@@ -22,12 +22,21 @@ export default async function Home() {
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-8">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">{t("title")}</h1>
-        <Button asChild>
-          <Link href="/trips/new">
-            <PlusIcon />
-            {t("new")}
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link href="/trips/import">
+              <FileSpreadsheetIcon />
+              {/* Icon only on small screens, where both buttons do not fit next to the title. */}
+              <span className="sr-only sm:not-sr-only">{t("import")}</span>
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/trips/new">
+              <PlusIcon />
+              {t("new")}
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {trips.length === 0 ? (

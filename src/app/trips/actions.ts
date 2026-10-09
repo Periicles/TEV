@@ -6,6 +6,7 @@ import type { ErrorCode } from "@/i18n/errors";
 import { isCurrency, parseAmount } from "@/lib/money";
 import { requireSession } from "@/lib/session";
 import { officialRate, type OfficialRate } from "@/server/exchange-rates";
+import { importTrip, type ImportInput } from "@/server/import";
 import {
   createExpense,
   createTrip,
@@ -150,4 +151,20 @@ export async function suggestRate(
   await requireSession();
   if (!isCurrency(base) || !isCurrency(quote)) return null;
   return officialRate(base, quote, date);
+}
+
+/** Creates a trip from a spreadsheet converted and checked in the browser. */
+export async function importSpreadsheet(input: ImportInput): Promise<FormState> {
+  const { user } = await requireSession();
+  let tripId: string;
+  try {
+    tripId = (await importTrip(user.id, input)).id;
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.warn("Invalid spreadsheet import:", z.prettifyError(error));
+      return { error: "importInvalid" };
+    }
+    return failure(error);
+  }
+  redirect(`/trips/${tripId}`);
 }

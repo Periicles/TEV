@@ -43,7 +43,8 @@
     "deleteTitle": "Delete “{name}”?",
     "deleteDescription": "The trip and all its expenses will be permanently deleted.",
     "cancel": "Cancel",
-    "confirmDelete": "Delete"
+    "confirmDelete": "Delete",
+    "import": "Import"
   },
   "tripForm": {
     "createTitle": "New trip",
@@ -100,6 +101,52 @@
     "rateUnavailable": "No official rate for this currency on this date: enter it.",
     "useOfficialRate": "Use the official rate ({rate})"
   },
+  "import": {
+    "title": "Import a spreadsheet",
+    "description": "Create a trip from an Excel file: one row per expense, with at least a label and an amount.",
+    "file": ".xlsx file",
+    "fileHint": "The file is read in your browser: nothing is saved until you confirm.",
+    "readError": "This file could not be read. Save it as .xlsx and try again.",
+    "sheet": "Sheet",
+    "columns": "Columns",
+    "roles": {
+      "date": "Date",
+      "label": "Label",
+      "amount": "Amount",
+      "category": "Category",
+      "notes": "Notes",
+      "perPerson": "Per person"
+    },
+    "noColumn": "—",
+    "columnsRequired": "Choose at least the label and amount columns.",
+    "trip": "Trip",
+    "name": "Name",
+    "currency": "Currency",
+    "currencyHint": "The trip's base currency, which the file's amounts are in.",
+    "startDate": "Start",
+    "endDate": "End",
+    "participants": "Participants",
+    "participantsHint": "Each imported expense is split between them.",
+    "participantName": "Name of participant {number}",
+    "removeParticipant": "Remove participant {number}",
+    "addParticipant": "Add a participant",
+    "categories": "Categories",
+    "newCategory": "Create “{name}”",
+    "noCategory": "None",
+    "preview": "Preview",
+    "summary": "{count, plural, =0 {No expenses} one {# expense} other {# expenses}} · Total {total}",
+    "undatedDate": "Date for rows without one",
+    "undatedHint": "{count, plural, one {# row has} other {# rows have}} no date: {labels}.",
+    "noDate": "No date",
+    "skipped": "{count, plural, one {# row skipped} other {# rows skipped}}",
+    "skippedRow": "Row {row}: {reason} ({cells})",
+    "reasons": {
+      "noLabel": "no label",
+      "noAmount": "no amount",
+      "invalidAmount": "invalid or negative amount"
+    },
+    "submit": "{count, plural, =0 {Import} one {Import # expense} other {Import # expenses}}"
+  },
   "paymentMethods": {
     "card": "Card",
     "cash": "Cash"
@@ -123,6 +170,7 @@
     "baseCurrencyLocked": "The base currency can no longer change once expenses exist.",
     "noParticipant": "Choose at least one participant.",
     "notFound": "Not found.",
-    "unexpected": "Something went wrong. Please try again."
+    "unexpected": "Something went wrong. Please try again.",
+    "importInvalid": "The file has invalid values: check the selected columns."
   }
 }
