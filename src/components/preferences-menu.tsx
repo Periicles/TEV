@@ -1,6 +1,7 @@
 "use client";
 
-import { LogOutIcon, Settings2Icon } from "lucide-react";
+import { LogOutIcon, Settings2Icon, TagsIcon } from "lucide-react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useSyncExternalStore, useTransition } from "react";
@@ -83,6 +84,12 @@ export function PreferencesMenu({
         {signedIn && (
           <>
             <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/categories">
+                <TagsIcon />
+                {t("preferences.categories")}
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => startTransition(() => signOut())}>
               <LogOutIcon />
               {t("auth.signOut")}
