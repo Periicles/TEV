@@ -73,11 +73,14 @@ export const category = pgTable(
     key: text("key"),
     name: text("name"),
     position: integer("position").notNull(),
+    /** Chart color, 1 to 8 (`--chart-N`); `null` follows the position in the palette. */
+    color: integer("color"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
     uniqueIndex("category_user_key_idx").on(table.userId, table.key),
     check("category_key_or_name", sql`(${table.key} IS NULL) <> (${table.name} IS NULL)`),
+    check("category_color_range", sql`${table.color} BETWEEN 1 AND 8`),
   ],
 );
 
