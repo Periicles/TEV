@@ -1,7 +1,6 @@
 {
   "app": {
-    "name": "TEV",
-    "tagline": "Suivi des dépenses de voyage."
+    "name": "TEV"
   },
   "preferences": {
     "title": "Préférences",
@@ -15,5 +14,20 @@
   "languages": {
     "fr": "Français",
     "en": "English"
+  },
+  "home": {
+    "greeting": "Bonjour {name}",
+    "tagline": "Suivi des dépenses de voyage."
+  },
+  "auth": {
+    "title": "Connexion",
+    "description": "Accède à tes voyages.",
+    "email": "Email",
+    "password": "Mot de passe",
+    "submit": "Se connecter",
+    "invalidCredentials": "Email ou mot de passe incorrect.",
+    "tooManyAttempts": "Trop de tentatives. Réessaie dans une minute.",
+    "unexpectedError": "Une erreur est survenue. Réessaie.",
+    "signOut": "Se déconnecter"
   }
 }
