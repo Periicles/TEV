@@ -1,0 +1,149 @@
+import { relations, sql } from "drizzle-orm";
+import {
+  bigint,
+  char,
+  check,
+  date,
+  index,
+  integer,
+  numeric,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
+import { user } from "./auth";
+
+const timestamps = {
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+};
+
+export const trip = pgTable(
+  "trip",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    /** ISO 4217 code every expense is converted into. */
+    baseCurrency: char("base_currency", { length: 3 }).notNull().default("EUR"),
+    startDate: date("start_date"),
+    endDate: date("end_date"),
+    ...timestamps,
+  },
+  (table) => [index("trip_user_id_idx").on(table.userId)],
+);
+
+/** People sharing a trip's expenses. Their count divides the totals. */
+export const participant = pgTable(
+  "participant",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tripId: uuid("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    /** Display order, also used to hand out rounding remainders deterministically. */
+    position: integer("position").notNull(),
+  },
+  (table) => [index("participant_trip_idx").on(table.tripId)],
+);
+
+/**
+ * Expense categories, shared by all of a user's trips. Built-in ones have a `key` translated in the
+ * UI; the ones the user adds have a `name`.
+ */
+export const category = pgTable(
+  "category",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    key: text("key"),
+    name: text("name"),
+    position: integer("position").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("category_user_key_idx").on(table.userId, table.key),
+    check("category_key_or_name", sql`(${table.key} IS NULL) <> (${table.name} IS NULL)`),
+  ],
+);
+
+export const expense = pgTable(
+  "expense",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tripId: uuid("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    date: date("date").notNull(),
+    label: text("label").notNull(),
+    categoryId: uuid("category_id").references(() => category.id, { onDelete: "set null" }),
+    /** Amount paid, in minor units of `currency`. */
+    amountMinor: bigint("amount_minor", { mode: "number" }).notNull(),
+    currency: char("currency", { length: 3 }).notNull(),
+    /** Amount in minor units of the trip's base currency, fixed when the expense is saved. */
+    baseAmountMinor: bigint("base_amount_minor", { mode: "number" }).notNull(),
+    /** Units of `currency` for one unit of the base currency (1 EUR = 161.56 JPY → 161.56). */
+    exchangeRate: numeric("exchange_rate", { precision: 20, scale: 10 }).notNull(),
+    rateSource: text("rate_source", { enum: ["same", "manual", "ecb"] }).notNull(),
+    paymentMethod: text("payment_method"),
+    notes: text("notes"),
+    ...timestamps,
+  },
+  (table) => [
+    index("expense_trip_date_idx").on(table.tripId, table.date),
+    check("expense_amount_positive", sql`${table.amountMinor} > 0`),
+    check("expense_base_amount_positive", sql`${table.baseAmountMinor} > 0`),
+    check("expense_rate_positive", sql`${table.exchangeRate} > 0`),
+  ],
+);
+
+/** Participants an expense is split between, in equal shares. */
+export const expenseParticipant = pgTable(
+  "expense_participant",
+  {
+    expenseId: uuid("expense_id")
+      .notNull()
+      .references(() => expense.id, { onDelete: "cascade" }),
+    participantId: uuid("participant_id")
+      .notNull()
+      .references(() => participant.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.expenseId, table.participantId] }),
+    index("expense_participant_participant_idx").on(table.participantId),
+  ],
+);
+
+export const tripRelations = relations(trip, ({ many }) => ({
+  participants: many(participant),
+  expenses: many(expense),
+}));
+
+export const participantRelations = relations(participant, ({ one }) => ({
+  trip: one(trip, { fields: [participant.tripId], references: [trip.id] }),
+}));
+
+export const expenseRelations = relations(expense, ({ one, many }) => ({
+  trip: one(trip, { fields: [expense.tripId], references: [trip.id] }),
+  category: one(category, { fields: [expense.categoryId], references: [category.id] }),
+  participants: many(expenseParticipant),
+}));
+
+export const expenseParticipantRelations = relations(expenseParticipant, ({ one }) => ({
+  expense: one(expense, { fields: [expenseParticipant.expenseId], references: [expense.id] }),
+  participant: one(participant, {
+    fields: [expenseParticipant.participantId],
+    references: [participant.id],
+  }),
+}));
