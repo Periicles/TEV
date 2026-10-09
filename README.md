@@ -59,6 +59,10 @@ CI runs all three on every pull request.
   between the participants it is shared with (all of them by default). A rounding cent goes to
   whoever has received the fewest so far, so shares always add up to the total and nobody pays more
   than a cent of rounding over another on a trip.
+- Each expense can record **who paid** (by default whoever paid last, else the first participant).
+  The trip page turns what everyone paid minus their share into the few transfers that settle the
+  trip ("Léa owes Paul 412,30 €"). Expenses without a payer, such as imported ones when none was
+  chosen, are shared but left out of these balances.
 - Amounts are stored as **integers in the currency's minor unit** (cents for EUR, yen for JPY,
   thousandths for KWD), never as floating-point numbers.
 - An expense keeps its original amount and currency, plus its amount in the base currency and the
