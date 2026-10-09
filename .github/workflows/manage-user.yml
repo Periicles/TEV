@@ -1,0 +1,59 @@
+name: Manage user
+
+# Creates an account or resets a password on the production database, without a local machine.
+# Secrets (Settings → Secrets and variables → Actions):
+#   PROD_DATABASE_URL  Neon DATABASE_URL_UNPOOLED of production
+#   TEV_USER_PASSWORD  password to set (12+ characters); delete it once the run succeeded
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What to do
+        type: choice
+        options: [create, password]
+        default: create
+      email:
+        description: Email of the account
+        type: string
+        required: true
+      name:
+        description: Display name (create only)
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  manage-user:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run user script
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          TEV_PASSWORD: ${{ secrets.TEV_USER_PASSWORD }}
+          ACTION: ${{ inputs.action }}
+          EMAIL: ${{ inputs.email }}
+          NAME: ${{ inputs.name }}
+        run: |
+          if [ -z "$DATABASE_URL" ] || [ -z "$TEV_PASSWORD" ]; then
+            echo "::error::Set the PROD_DATABASE_URL and TEV_USER_PASSWORD repository secrets first."
+            exit 1
+          fi
+          if [ "$ACTION" = "create" ]; then
+            if [ -z "$NAME" ]; then
+              echo "::error::A name is required to create an account."
+              exit 1
+            fi
+            pnpm user:create "$EMAIL" "$NAME"
+          else
+            pnpm user:password "$EMAIL"
+          fi
