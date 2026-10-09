@@ -2,6 +2,7 @@ import { ChevronLeftIcon, PencilIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { categoryLabel } from "@/components/category-label";
+import { CategoryRing } from "@/components/category-ring";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMoney, splitEvenly } from "@/lib/money";
@@ -90,25 +91,20 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
       {categoryTotals.length > 0 && (
         <section className="grid gap-3">
           <h2 className="font-semibold">{t("byCategory")}</h2>
-          {categoryTotals.map(([categoryId, amount]) => (
-            <div key={categoryId ?? "none"} className="grid gap-1 text-sm">
-              <div className="flex justify-between gap-4 tabular-nums">
-                <span>{categoryName(categoryId)}</span>
-                <span>
-                  {money(amount)}{" "}
-                  <span className="text-muted-foreground">
-                    · {format.number(amount / totalMinor, { style: "percent" })}
-                  </span>
-                </span>
-              </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: `${(amount / totalMinor) * 100}%` }}
-                />
-              </div>
-            </div>
-          ))}
+          <CategoryRing
+            id={trip.id}
+            items={categoryTotals.map(([categoryId, amount]) => {
+              const position = categories.findIndex((c) => c.id === categoryId);
+              return {
+                key: categoryId ?? "none",
+                label: categoryName(categoryId),
+                value: amount,
+                amount: money(amount),
+                percent: format.number(amount / totalMinor, { style: "percent" }),
+                colorIndex: position >= 0 ? position : null,
+              };
+            })}
+          />
         </section>
       )}
 
