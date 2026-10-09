@@ -48,7 +48,7 @@ describe.skipIf(!process.env.DATABASE_URL)("accounts", () => {
     ).rejects.toThrow(/already exists/);
     await expect(
       createUser({ email: email("short"), name: "Short", password: "too-short" }),
-    ).rejects.toThrow(/between 12 and 128/);
+    ).rejects.toThrow(/between 12 and 72/);
   });
 
   it("does not allow signing up from the app", async () => {
