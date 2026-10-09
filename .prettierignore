@@ -3,3 +3,5 @@ pnpm-lock.yaml
 coverage
 next-env.d.ts
 AGENTS.md
+playwright-report
+test-results

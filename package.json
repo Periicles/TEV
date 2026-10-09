@@ -17,7 +17,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "user:create": "tsx --env-file-if-exists=.env.local scripts/user.ts create",
-    "user:password": "tsx --env-file-if-exists=.env.local scripts/user.ts password"
+    "user:password": "tsx --env-file-if-exists=.env.local scripts/user.ts password",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.9.0",
@@ -37,6 +38,7 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.0",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^24.19.1",
     "@types/pg": "^8.23.1",
