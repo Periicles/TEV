@@ -1,0 +1,45 @@
+name: Neon preview cleanup
+
+# The Vercel–Neon integration creates a database branch `preview/<git branch>` for each preview
+# deployment but never deletes it, and the free plan allows 10 branches. This deletes the branch
+# once its pull request is merged or closed.
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions: {}
+
+jobs:
+  delete-branch:
+    # Pull requests from forks get no secrets (and no preview database).
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    env:
+      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+      # tev-db; not a secret.
+      NEON_PROJECT_ID: polished-haze-88099819
+      BRANCH_NAME: preview/${{ github.event.pull_request.head.ref }}
+    steps:
+      - name: Delete the preview database branch
+        run: |
+          set -euo pipefail
+          if [ -z "$NEON_API_KEY" ]; then
+            echo "::error::The NEON_API_KEY secret is missing."
+            exit 1
+          fi
+          api="https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches"
+          auth="Authorization: Bearer $NEON_API_KEY"
+
+          # Branch ids are needed to delete; the search is a substring match, so filter exactly.
+          ids=$(curl -fsS -G -H "$auth" --data-urlencode "search=$BRANCH_NAME" "$api" \
+            | jq -r --arg name "$BRANCH_NAME" \
+                '.branches[] | select(.name == $name and (.default | not)) | .id')
+          if [ -z "$ids" ]; then
+            echo "No Neon branch named $BRANCH_NAME: nothing to delete."
+            exit 0
+          fi
+          for id in $ids; do
+            curl -fsS -X DELETE -H "$auth" "$api/$id" > /dev/null
+            echo "Deleted Neon branch $BRANCH_NAME ($id)."
+          done
