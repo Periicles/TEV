@@ -33,7 +33,8 @@ Then open http://localhost:3000 and sign in.
 | `pnpm build`                      | Production build                                        |
 | `pnpm lint`                       | Lint with ESLint                                        |
 | `pnpm typecheck`                  | Generate route types and run tsc                        |
-| `pnpm test`                       | Run unit tests with Vitest                              |
+| `pnpm test`                       | Unit and integration tests (Vitest)                     |
+| `pnpm test:e2e`                   | End-to-end tests (Playwright, on the production build)  |
 | `pnpm format`                     | Format with Prettier                                    |
 | `pnpm format:check`               | Check formatting                                        |
 | `pnpm db:generate`                | Generate a migration from the schema in `src/db/schema` |
@@ -41,6 +42,16 @@ Then open http://localhost:3000 and sign in.
 | `pnpm db:studio`                  | Browse the database                                     |
 | `pnpm user:create <email> <name>` | Create an account (password prompted)                   |
 | `pnpm user:password <email>`      | Change a password and sign the user out everywhere      |
+
+## Tests
+
+- **Unit** (`*.test.ts`, Vitest): pure logic such as locale resolution and translation catalogs.
+- **Integration** (`*.int.test.ts`, Vitest): code that talks to PostgreSQL, against `DATABASE_URL`.
+- **End-to-end** (`e2e/`, Playwright): real user flows on the production build (`pnpm build` first),
+  on a mobile and a desktop viewport. They sign in with a dedicated `e2e@test.local` account that
+  the setup creates through `scripts/user.ts`.
+
+CI runs all three on every pull request.
 
 ## Accounts and database
 
