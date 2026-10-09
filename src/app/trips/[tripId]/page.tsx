@@ -4,8 +4,9 @@ import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { categoryLabel } from "@/components/category-label";
 import { BudgetBar } from "@/components/budget-bar";
 import { CategoryRing } from "@/components/category-ring";
-import { ColorDot } from "@/components/color-dot";
+import { ExpenseList } from "@/components/expense-list";
 import { chartColor, colorNumber } from "@/lib/category-colors";
+import { searchText } from "@/lib/expense-search";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMoney, splitEvenly } from "@/lib/money";
@@ -175,58 +176,52 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
           {trip.expenses.length === 0 && (
             <p className="text-sm text-muted-foreground">{t("noExpenses")}</p>
           )}
-          {[...days.entries()].map(([date, expenses]) => (
-            <div key={date} className="grid gap-1">
-              <h3 className="flex justify-between gap-4 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                <span>{day(date)}</span>
-                {trip.showDailyTotals && (
-                  <span className="tabular-nums" data-testid="daily-total">
-                    {money(expenses.reduce((sum, e) => sum + e.baseAmountMinor, 0))}
-                  </span>
-                )}
-              </h3>
-              <ul className="divide-y rounded-lg border">
-                {expenses.map((e) => (
-                  <li key={e.id}>
-                    <Link
-                      href={`/trips/${trip.id}/expenses/${e.id}`}
-                      className="flex items-center justify-between gap-3 px-3 py-2.5 hover:bg-accent/50 lg:px-4"
-                    >
-                      <ColorDot color={categoryColor(e.categoryId)} />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">{e.label}</p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {[
-                            categoryName(e.categoryId),
-                            e.paymentMethod,
-                            trip.trackPayers &&
-                              participantCount > 1 &&
-                              e.paidBy &&
-                              t("paidBy", { name: participantName(e.paidBy) }),
-                            e.participantIds.length < participantCount &&
-                              trip.participants
-                                .filter((p) => e.participantIds.includes(p.id))
-                                .map((p) => p.name)
-                                .join(", "),
-                          ]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </p>
-                      </div>
-                      <div className="shrink-0 text-right tabular-nums">
-                        <p className="font-medium">{money(e.baseAmountMinor)}</p>
-                        {e.currency !== trip.baseCurrency && (
-                          <p className="text-xs text-muted-foreground">
-                            {money(e.amountMinor, e.currency)}
-                          </p>
-                        )}
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <ExpenseList
+            // A new set of expenses (added, edited, restored) starts the list afresh.
+            key={trip.expenses.map((e) => `${e.id}:${e.updatedAt.getTime()}`).join()}
+            rows={trip.expenses.map((e) => {
+              const meta = [
+                categoryName(e.categoryId),
+                e.paymentMethod,
+                trip.trackPayers &&
+                  participantCount > 1 &&
+                  e.paidBy &&
+                  t("paidBy", { name: participantName(e.paidBy) }),
+                e.participantIds.length < participantCount &&
+                  trip.participants
+                    .filter((p) => e.participantIds.includes(p.id))
+                    .map((p) => p.name)
+                    .join(", "),
+              ]
+                .filter(Boolean)
+                .join(" · ");
+              const amount = money(e.baseAmountMinor);
+              const originalAmount =
+                e.currency === trip.baseCurrency ? null : money(e.amountMinor, e.currency);
+              return {
+                id: e.id,
+                href: `/trips/${trip.id}/expenses/${e.id}`,
+                date: e.date,
+                label: e.label,
+                meta,
+                amount,
+                originalAmount,
+                color: categoryColor(e.categoryId),
+                search: searchText([e.label, meta, e.notes, amount, originalAmount, day(e.date)]),
+              };
+            })}
+            days={Object.fromEntries(
+              [...days].map(([date, expenses]) => [
+                date,
+                {
+                  label: day(date),
+                  total: trip.showDailyTotals
+                    ? money(expenses.reduce((sum, e) => sum + e.baseAmountMinor, 0))
+                    : null,
+                },
+              ]),
+            )}
+          />
         </section>
       </div>
 
