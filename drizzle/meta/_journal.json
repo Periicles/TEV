@@ -57,6 +57,13 @@
       "when": 1791559796086,
       "tag": "0007_trip-budget-daily-totals",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791560262000,
+      "tag": "0008_soft-delete",
+      "breakpoints": true
     }
   ]
 }

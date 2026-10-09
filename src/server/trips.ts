@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, isNull, lt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { category, expense, expenseParticipant, participant, trip } from "@/db/schema";
@@ -78,23 +78,39 @@ export const expenseInput = z.object({
 });
 export type ExpenseInput = z.infer<typeof expenseInput>;
 
-async function findTrip(userId: string, tripId: string) {
+/** How long a deleted trip or expense can be restored before it is purged. */
+const RESTORE_WINDOW_MS = 60 * 60 * 1000;
+
+async function findTrip(userId: string, tripId: string, { deleted = false } = {}) {
   if (!id.safeParse(tripId).success) throw new NotFoundError();
   const [row] = await db
     .select()
     .from(trip)
-    .where(and(eq(trip.id, tripId), eq(trip.userId, userId)));
+    .where(
+      and(
+        eq(trip.id, tripId),
+        eq(trip.userId, userId),
+        deleted ? isNotNull(trip.deletedAt) : isNull(trip.deletedAt),
+      ),
+    );
   if (!row) throw new NotFoundError();
   return row;
 }
 
-async function findExpense(userId: string, expenseId: string) {
+async function findExpense(userId: string, expenseId: string, { deleted = false } = {}) {
   if (!id.safeParse(expenseId).success) throw new NotFoundError();
   const [row] = await db
     .select({ expense, trip })
     .from(expense)
     .innerJoin(trip, eq(expense.tripId, trip.id))
-    .where(and(eq(expense.id, expenseId), eq(trip.userId, userId)));
+    .where(
+      and(
+        eq(expense.id, expenseId),
+        eq(trip.userId, userId),
+        isNull(trip.deletedAt),
+        deleted ? isNotNull(expense.deletedAt) : isNull(expense.deletedAt),
+      ),
+    );
   if (!row) throw new NotFoundError();
   return row;
 }
@@ -112,8 +128,8 @@ export async function listTrips(userId: string) {
       expenseCount: sql<number>`count(${expense.id})`.mapWith(Number),
     })
     .from(trip)
-    .leftJoin(expense, eq(expense.tripId, trip.id))
-    .where(eq(trip.userId, userId))
+    .leftJoin(expense, and(eq(expense.tripId, trip.id), isNull(expense.deletedAt)))
+    .where(and(eq(trip.userId, userId), isNull(trip.deletedAt)))
     .groupBy(trip.id)
     .orderBy(sql`${trip.startDate} desc nulls last`, desc(trip.createdAt));
 
@@ -144,7 +160,7 @@ export async function getTripDetails(userId: string, tripId: string) {
   const expenses = await db
     .select()
     .from(expense)
-    .where(eq(expense.tripId, details.id))
+    .where(and(eq(expense.tripId, details.id), isNull(expense.deletedAt)))
     .orderBy(desc(expense.date), desc(expense.createdAt));
   const shares = expenses.length
     ? await db
@@ -199,6 +215,11 @@ export async function updateTrip(userId: string, tripId: string, input: TripInpu
   const current = await getTrip(userId, tripId);
 
   return db.transaction(async (tx) => {
+    // Deleted expenses could not be restored into a trip whose currency or participants changed.
+    await tx
+      .delete(expense)
+      .where(and(eq(expense.tripId, current.id), isNotNull(expense.deletedAt)));
+
     if (data.baseCurrency !== current.baseCurrency) {
       const [{ count }] = await tx
         .select({ count: sql<number>`count(*)`.mapWith(Number) })
@@ -258,9 +279,34 @@ export async function updateTrip(userId: string, tripId: string, input: TripInpu
   });
 }
 
+/** Deletes for good what was deleted longer ago than the restore window. */
+async function purgeDeleted(userId: string) {
+  const cutoff = new Date(Date.now() - RESTORE_WINDOW_MS);
+  await db.delete(trip).where(and(eq(trip.userId, userId), lt(trip.deletedAt, cutoff)));
+  await db
+    .delete(expense)
+    .where(
+      and(
+        lt(expense.deletedAt, cutoff),
+        inArray(
+          expense.tripId,
+          db.select({ id: trip.id }).from(trip).where(eq(trip.userId, userId)),
+        ),
+      ),
+    );
+}
+
+/** Deletes a trip; it can be restored with `restoreTrip` during the restore window. */
 export async function deleteTrip(userId: string, tripId: string) {
   const current = await findTrip(userId, tripId);
-  await db.delete(trip).where(eq(trip.id, current.id));
+  await db.update(trip).set({ deletedAt: new Date() }).where(eq(trip.id, current.id));
+  await purgeDeleted(userId);
+}
+
+export async function restoreTrip(userId: string, tripId: string) {
+  const current = await findTrip(userId, tripId, { deleted: true });
+  await db.update(trip).set({ deletedAt: null }).where(eq(trip.id, current.id));
+  return current.id;
 }
 
 /** The user's categories, creating the built-in ones on first use. */
@@ -372,8 +418,16 @@ export async function updateExpense(userId: string, expenseId: string, input: Ex
   });
 }
 
+/** Deletes an expense; it can be restored with `restoreExpense` during the restore window. */
 export async function deleteExpense(userId: string, expenseId: string) {
   const found = await findExpense(userId, expenseId);
-  await db.delete(expense).where(eq(expense.id, found.expense.id));
+  await db.update(expense).set({ deletedAt: new Date() }).where(eq(expense.id, found.expense.id));
+  await purgeDeleted(userId);
+  return found.trip.id;
+}
+
+export async function restoreExpense(userId: string, expenseId: string) {
+  const found = await findExpense(userId, expenseId, { deleted: true });
+  await db.update(expense).set({ deletedAt: null }).where(eq(expense.id, found.expense.id));
   return found.trip.id;
 }

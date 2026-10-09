@@ -1,7 +1,7 @@
-import { inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { db } from "@/db";
-import { user } from "@/db/schema";
+import { expense, user } from "@/db/schema";
 import { createUser } from "@/lib/users";
 import {
   createExpense,
@@ -14,6 +14,8 @@ import {
   listCategories,
   listTrips,
   NotFoundError,
+  restoreExpense,
+  restoreTrip,
   updateExpense,
   updateTrip,
   type ExpenseInput,
@@ -278,6 +280,61 @@ describe.skipIf(!process.env.DATABASE_URL)("trips and expenses", () => {
       "other",
     ]);
     expect(second.map((c) => c.id)).toEqual(first.map((c) => c.id));
+  });
+
+  it("restores a deleted expense until it is purged", async () => {
+    const trip = await japanTrip();
+    const ids = trip.participants.map((p) => p.id);
+    const kept = await createExpense(owner, trip.id, expenseOf(ids, { label: "Kept" }));
+    const deleted = await createExpense(owner, trip.id, expenseOf(ids, { label: "Deleted" }));
+
+    await deleteExpense(owner, deleted.id);
+    let details = await getTripDetails(owner, trip.id);
+    expect(details.expenses.map((e) => e.label)).toEqual(["Kept"]);
+    expect((await listTrips(owner)).find((t) => t.id === trip.id)?.expenseCount).toBe(1);
+    await expect(getExpense(owner, deleted.id)).rejects.toThrow(NotFoundError);
+
+    expect(await restoreExpense(owner, deleted.id)).toBe(trip.id);
+    details = await getTripDetails(owner, trip.id);
+    expect(details.expenses.map((e) => e.label).toSorted()).toEqual(["Deleted", "Kept"]);
+    await expect(restoreExpense(owner, kept.id)).rejects.toThrow(NotFoundError);
+
+    // An hour later, the next deletion purges it for good.
+    await deleteExpense(owner, deleted.id);
+    await db
+      .update(expense)
+      .set({ deletedAt: new Date(Date.now() - 2 * 60 * 60 * 1000) })
+      .where(eq(expense.id, deleted.id));
+    await deleteExpense(owner, kept.id);
+    await expect(restoreExpense(owner, deleted.id)).rejects.toThrow(NotFoundError);
+    expect(await restoreExpense(owner, kept.id)).toBe(trip.id);
+  });
+
+  it("drops deleted expenses for good when the trip changes", async () => {
+    const trip = await japanTrip();
+    const [paul, lea] = trip.participants;
+    const deleted = await createExpense(owner, trip.id, expenseOf([lea.id]));
+    await deleteExpense(owner, deleted.id);
+    // Léa only shares a deleted expense: she can be removed, and the expense cannot come back.
+    await updateTrip(owner, trip.id, {
+      name: trip.name,
+      baseCurrency: "USD",
+      startDate: null,
+      endDate: null,
+      participants: [{ id: paul.id, name: "Paul" }],
+    });
+    await expect(restoreExpense(owner, deleted.id)).rejects.toThrow(NotFoundError);
+  });
+
+  it("restores a deleted trip", async () => {
+    const trip = await japanTrip();
+    await deleteTrip(owner, trip.id);
+    expect((await listTrips(owner)).some((t) => t.id === trip.id)).toBe(false);
+    await expect(getTripDetails(owner, trip.id)).rejects.toThrow(NotFoundError);
+    await expect(restoreTrip(other, trip.id)).rejects.toThrow(NotFoundError);
+
+    expect(await restoreTrip(owner, trip.id)).toBe(trip.id);
+    expect((await getTripDetails(owner, trip.id)).name).toBe("Japon 2025");
   });
 
   it("deletes a trip with everything in it", async () => {
