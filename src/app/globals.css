@@ -24,6 +24,15 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
+  /* Chart series: eight neon hues, the same in both themes so categories keep their color. */
+  --chart-1: oklch(0.62 0.25 350);
+  --chart-2: oklch(0.66 0.14 200);
+  --chart-3: oklch(0.62 0.2 260);
+  --chart-4: oklch(0.72 0.17 85);
+  --chart-5: oklch(0.6 0.25 300);
+  --chart-6: oklch(0.66 0.2 45);
+  --chart-7: oklch(0.68 0.2 140);
+  --chart-8: oklch(0.62 0.24 20);
 }
 
 .dark {
@@ -45,6 +54,14 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.72 0.28 350);
+  --chart-2: oklch(0.88 0.16 200);
+  --chart-3: oklch(0.7 0.2 260);
+  --chart-4: oklch(0.92 0.19 100);
+  --chart-5: oklch(0.7 0.26 305);
+  --chart-6: oklch(0.78 0.19 55);
+  --chart-7: oklch(0.88 0.24 140);
+  --chart-8: oklch(0.68 0.25 22);
 }
 
 @theme inline {

@@ -79,6 +79,10 @@ test("tracks a trip's expenses in several currencies, split between participants
   await expect(page.getByTestId("trip-per-person")).toHaveText("Par personne : 195,24 €");
   await expect(page.getByTestId("share-Paul")).toHaveText("378,56 €");
   await expect(page.getByTestId("share-Léa")).toHaveText("11,91 €");
+  await expect(page.getByTestId("category-Logement")).toHaveText(/^Logement366,64\s€ · 94\s%$/);
+  await expect(page.getByTestId("category-Restauration")).toHaveText(
+    /^Restauration23,83\s€ · 6\s%$/,
+  );
   await expect(page.getByRole("link", { name: /Sushiro.*3\s?850 JPY/ })).toBeVisible();
 
   // The next expense defaults to the last currency used; the official rate replaces the last one.
