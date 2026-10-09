@@ -26,6 +26,7 @@ export default async function EditTripPage({ params }: PageProps<"/trips/[tripId
           baseCurrency: trip.baseCurrency,
           startDate: trip.startDate,
           endDate: trip.endDate,
+          trackPayers: trip.trackPayers,
           participants: trip.participants.map((p) => ({ id: p.id, name: p.name })),
         }}
       />

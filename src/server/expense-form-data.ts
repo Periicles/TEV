@@ -37,6 +37,8 @@ export async function expenseFormData(trip: Trip) {
     paymentMethods,
     today: today(timeZone),
     lastCurrency: byEntry[0]?.currency ?? trip.baseCurrency,
+    // Whoever paid last pays again by default; the first participant (usually you) otherwise.
+    lastPayer: byEntry.find((e) => e.paidBy)?.paidBy ?? trip.participants[0]?.id ?? null,
     locale,
   };
 }

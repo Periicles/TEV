@@ -63,6 +63,7 @@ export function ImportForm({
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [participants, setParticipants] = useState([userName]);
+  const [payer, setPayer] = useState("");
   const [mapping, setMapping] = useState<ColumnMapping>({});
   const [categoryChoices, setCategoryChoices] = useState<Record<string, CategoryChoice>>({});
   const [undatedDate, setUndatedDate] = useState("");
@@ -175,6 +176,7 @@ export function ImportForm({
           endDate: endDate || null,
           participants: participants.map((p) => ({ name: p.trim() })),
         },
+        paidBy: payer === "" || Number(payer) >= participants.length ? null : Number(payer),
         newCategories,
         expenses,
       });
@@ -330,6 +332,23 @@ export function ImportForm({
                 {t("addParticipant")}
               </Button>
             </fieldset>
+            {participants.length > 1 && (
+              <Field id={`${ID}-payer`} label={t("paidBy")} hint={t("paidByHint")}>
+                <NativeSelect
+                  id={`${ID}-payer`}
+                  value={Number(payer) < participants.length ? payer : ""}
+                  onChange={(event) => setPayer(event.target.value)}
+                  wrapperClassName="w-full"
+                >
+                  <NativeSelectOption value="">{t("paidByUnknown")}</NativeSelectOption>
+                  {participants.map((p, index) => (
+                    <NativeSelectOption key={index} value={String(index)}>
+                      {p.trim() || t("participantName", { number: index + 1 })}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </Field>
+            )}
           </section>
 
           {spreadsheetCategories.length > 0 && (

@@ -1,0 +1,2 @@
+ALTER TABLE "expense" ADD COLUMN "paid_by" uuid;--> statement-breakpoint
+ALTER TABLE "expense" ADD CONSTRAINT "expense_paid_by_participant_id_fk" FOREIGN KEY ("paid_by") REFERENCES "public"."participant"("id") ON DELETE set null ON UPDATE no action;

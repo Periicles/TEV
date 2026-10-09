@@ -26,6 +26,7 @@ test("creates a trip from a spreadsheet", async ({ page }) => {
 
   await main(page).getByLabel("Nom", { exact: true }).fill(name);
   await main(page).getByLabel("Prénom du participant 2").fill("Léa");
+  await main(page).getByLabel("Payé par").selectOption({ label: "Léa" });
   // An existing category rather than a new one, so runs do not pile categories up.
   await main(page).getByLabel("Extras", { exact: true }).selectOption({ label: "Activités" });
   await main(page).getByRole("button", { name: "Importer 4 dépenses" }).click();
@@ -34,6 +35,7 @@ test("creates a trip from a spreadsheet", async ({ page }) => {
   await expect(page.getByTestId("trip-total")).toHaveText("786,33 €");
   await expect(page.getByTestId("trip-per-person")).toHaveText("Par personne : 393,17 €");
   await expect(page.getByRole("link", { name: /Suica/ })).toBeVisible();
+  await expect(page.getByTestId("settlement")).toHaveText(/^E2E doit à Léa\s*393,1[67]\s€$/);
 
   await page.getByRole("link", { name: "Modifier" }).click();
   await page.getByRole("button", { name: "Supprimer le voyage" }).click();
