@@ -19,7 +19,7 @@ export default async function Home() {
     format.dateTime(new Date(`${date}T00:00:00Z`), { timeZone: "UTC", dateStyle: "medium" });
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-8">
+    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-8 lg:max-w-6xl">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">{t("title")}</h1>
         <div className="flex gap-2">
@@ -45,7 +45,7 @@ export default async function Home() {
           <p className="text-sm text-muted-foreground">{t("emptyHint")}</p>
         </div>
       ) : (
-        <ul className="grid gap-3">
+        <ul className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
           {trips.map((trip) => (
             <li key={trip.id}>
               <Link href={`/trips/${trip.id}`} className="block rounded-xl focus-visible:outline-2">
