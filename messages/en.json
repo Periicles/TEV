@@ -1,0 +1,18 @@
+{
+  "app": {
+    "name": "TEV",
+    "tagline": "Travel expense tracking."
+  },
+  "preferences": {
+    "language": "Language",
+    "languageAuto": "Automatic",
+    "theme": "Theme",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English"
+  }
+}
