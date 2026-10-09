@@ -15,7 +15,7 @@ export async function AppHeader() {
 
   return (
     <header className="border-b">
-      <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-4 py-3">
+      <div className="mx-auto flex w-full max-w-3xl items-center lg:max-w-6xl justify-between gap-4 px-4 py-3">
         <Link href="/" className="font-semibold">
           {t("name")}
         </Link>
