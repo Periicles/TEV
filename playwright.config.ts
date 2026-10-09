@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const port = Number(process.env.E2E_PORT ?? 3000);
+const ratesPort = 3999;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -20,10 +21,20 @@ export default defineConfig({
     { name: "mobile", use: { ...devices["Pixel 7"] } },
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
   ],
-  webServer: {
-    // Runs against the production build, as deployed.
-    command: `pnpm start --port ${port}`,
-    url: `http://localhost:${port}/login`,
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {
+      // Fixed exchange rates instead of the real API (see e2e/rates-stub.mjs).
+      command: `node e2e/rates-stub.mjs`,
+      env: { RATES_STUB_PORT: String(ratesPort) },
+      url: `http://localhost:${ratesPort}/health`,
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      // Runs against the production build, as deployed.
+      command: `pnpm start --port ${port}`,
+      env: { EXCHANGE_RATES_URL: `http://localhost:${ratesPort}/v2` },
+      url: `http://localhost:${port}/login`,
+      reuseExistingServer: !process.env.CI,
+    },
+  ],
 });
