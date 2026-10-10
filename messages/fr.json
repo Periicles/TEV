@@ -182,6 +182,19 @@
     "retry": "Réessayer",
     "home": "Retour à mes voyages"
   },
+  "toasts": {
+    "tripCreated": "Voyage créé",
+    "tripSaved": "Voyage enregistré",
+    "tripImported": "{count, plural, one {# dépense importée} other {# dépenses importées}}",
+    "tripDeleted": "Voyage supprimé",
+    "tripRestored": "Voyage restauré",
+    "expenseAdded": "Dépense ajoutée",
+    "expenseSaved": "Dépense enregistrée",
+    "expenseDeleted": "Dépense supprimée",
+    "expenseRestored": "Dépense restaurée",
+    "undo": "Annuler",
+    "undoFailed": "Trop tard : la suppression est définitive."
+  },
   "paymentMethods": {
     "card": "Carte",
     "cash": "Espèces"

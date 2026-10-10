@@ -182,6 +182,19 @@
     "retry": "Try again",
     "home": "Back to my trips"
   },
+  "toasts": {
+    "tripCreated": "Trip created",
+    "tripSaved": "Trip saved",
+    "tripImported": "{count, plural, one {# expense imported} other {# expenses imported}}",
+    "tripDeleted": "Trip deleted",
+    "tripRestored": "Trip restored",
+    "expenseAdded": "Expense added",
+    "expenseSaved": "Expense saved",
+    "expenseDeleted": "Expense deleted",
+    "expenseRestored": "Expense restored",
+    "undo": "Undo",
+    "undoFailed": "Too late: the deletion is final."
+  },
   "paymentMethods": {
     "card": "Card",
     "cash": "Cash"

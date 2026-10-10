@@ -43,6 +43,8 @@ export const trip = pgTable(
     budgetMinor: bigint("budget_minor", { mode: "number" }),
     /** Whether the expense list shows each day's total. Off by default. */
     showDailyTotals: boolean("show_daily_totals").notNull().default(false),
+    /** Set when deleted: the trip can be restored for a while, then it is purged. */
+    deletedAt: timestamp("deleted_at"),
     ...timestamps,
   },
   (table) => [
@@ -117,6 +119,8 @@ export const expense = pgTable(
     paidBy: uuid("paid_by").references(() => participant.id, { onDelete: "set null" }),
     paymentMethod: text("payment_method"),
     notes: text("notes"),
+    /** Set when deleted: the expense can be restored for a while, then it is purged. */
+    deletedAt: timestamp("deleted_at"),
     ...timestamps,
   },
   (table) => [

@@ -83,6 +83,11 @@ CI runs all three on every pull request.
   delete (expenses become uncategorized; the last category stays) and pick one of the eight neon
   palette colors. A category without a chosen color follows its position in the palette; moving one
   pins the colors so charts never repaint.
+- Actions confirm themselves with a **toast**. Server actions redirect, so they leave the message in
+  a short-lived `tev-flash` cookie that `FlashToaster` reads and clears on the next page.
+  **Deleting** a trip or an expense only marks it (`deleted_at`): the toast offers to undo, and
+  marked rows are purged for good an hour later, or as soon as the trip's currency or participants
+  change.
 - Every query is scoped to the signed-in user (`src/server/trips.ts`); someone else's trip behaves
   as if it did not exist.
 - Next.js keeps visited pages in the DOM (hidden): form field ids derive from the record they edit,
