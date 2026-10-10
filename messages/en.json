@@ -88,6 +88,12 @@
     "unpaidExpenses": "{count, plural, one {# expense without a payer is not counted} other {# expenses without a payer are not counted}}.",
     "paidBy": "paid by {name}"
   },
+  "expenseList": {
+    "search": "Search expenses",
+    "searchPlaceholder": "Search: label, category, amount…",
+    "results": "{count, plural, =0 {No matching expense} one {# expense found} other {# expenses found}}",
+    "showMore": "Show more ({count} left)"
+  },
   "budget": {
     "label": "Budget spent",
     "of": "Budget: {budget}",

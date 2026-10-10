@@ -88,6 +88,10 @@ CI runs all three on every pull request.
   **Deleting** a trip or an expense only marks it (`deleted_at`): the toast offers to undo, and
   marked rows are purged for good an hour later, or as soon as the trip's currency or participants
   change.
+- The **expense list** shows the newest 15 expenses, then 15 more each time its end scrolls into
+  view (all expenses are loaded anyway, for the totals: only rendering is progressive). The search
+  covers every expense: label, category, payment method, payer, notes, amounts and date, in any
+  order, without case or accents.
 - Every query is scoped to the signed-in user (`src/server/trips.ts`); someone else's trip behaves
   as if it did not exist.
 - Next.js keeps visited pages in the DOM (hidden): form field ids derive from the record they edit,
