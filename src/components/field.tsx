@@ -18,7 +18,9 @@ export function Field({
 }) {
   const t = useTranslations("errors");
   return (
-    <div className="grid gap-2">
+    // `minmax(0, 1fr)` and `min-w-0`: a field never grows past its column, whatever its control's
+    // native width (date fields on iOS).
+    <div className="grid min-w-0 grid-cols-1 gap-2">
       <Label htmlFor={id}>{label}</Label>
       {children}
       {hint && !error && <p className="text-xs text-muted-foreground">{hint}</p>}
