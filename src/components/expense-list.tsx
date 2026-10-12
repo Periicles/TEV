@@ -7,6 +7,7 @@ import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { ColorDot } from "@/components/color-dot";
 import { Input } from "@/components/ui/input";
 import { matchesSearch } from "@/lib/expense-search";
+import { groupBy } from "@/lib/utils";
 
 /** An expense as listed, formatted on the server. */
 export interface ExpenseRow {
@@ -49,7 +50,7 @@ export function ExpenseList({
     : rows;
   const visible = matching.slice(0, shown);
   const remaining = matching.length - visible.length;
-  const groups = Map.groupBy(visible, (row) => row.date);
+  const groups = groupBy(visible, (row) => row.date);
 
   // Loads the next page as the end of the list scrolls into view.
   useEffect(() => {

@@ -10,6 +10,25 @@ const eslintConfig = defineConfig([
     files: ["e2e/**"],
     rules: { "react-hooks/rules-of-hooks": "off" },
   },
+  {
+    // Code that can run in the browser must work on iOS 16.4+, the oldest Safari Next.js supports.
+    files: ["src/components/**", "src/lib/**"],
+    rules: {
+      "no-restricted-properties": [
+        "error",
+        {
+          object: "Map",
+          property: "groupBy",
+          message: "Safari 17.4+ only: use groupBy from @/lib/utils.",
+        },
+        {
+          object: "Object",
+          property: "groupBy",
+          message: "Safari 17.4+ only: use groupBy from @/lib/utils.",
+        },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
