@@ -174,7 +174,7 @@ describe.skipIf(!process.env.DATABASE_URL)("trips and expenses", () => {
 
     await expect(
       updateTrip(owner, trip.id, { ...base, participants: [{ id: paul.id, name: "Paul" }] }),
-    ).rejects.toThrow(new InputError("participantInUse"));
+    ).rejects.toThrow(new InputError("participantShares"));
     await expect(
       updateTrip(owner, trip.id, {
         ...base,
@@ -265,7 +265,7 @@ describe.skipIf(!process.env.DATABASE_URL)("trips and expenses", () => {
         endDate: null,
         participants: [{ id: paul.id, name: "Paul" }],
       }),
-    ).rejects.toThrow(new InputError("participantInUse"));
+    ).rejects.toThrow(new InputError("participantPaid"));
   });
 
   it("creates the built-in categories once", async () => {
