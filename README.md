@@ -119,6 +119,15 @@ browser ([read-excel-file](https://www.npmjs.com/package/read-excel-file)) and c
 `e2e/fixtures/budget.xlsx` is a small fictional file with the same layout as the original
 spreadsheet (formulas, `-` dates, a totals row, a side table); unit and end-to-end tests use it.
 
+## Export
+
+_Export_ on a trip downloads its expenses as an `.xlsx` file named after the trip
+(`/trips/<id>/export`, `src/lib/trip-export.ts`), one row per expense, oldest first: date, label,
+amount in the base currency, category, payment method, payer (when the trip tracks who paid),
+participants, then the original amount, currency and rate for foreign-currency expenses, and notes.
+Column titles follow the app's language and keep the names the import recognizes, so an exported
+file imports back with the same expenses and total.
+
 ## Installing on a phone
 
 TEV is a Progressive Web App: _Add to Home Screen_ (Safari on iOS) or _Install app_ (Chrome on
@@ -130,8 +139,8 @@ bars.
 - `public/sw.js` is a minimal service worker. It caches no app data, so balances are never stale:
   pages always come from the network and, when it is down, a page load shows `public/offline.html`
   (French or English, like the app) instead of the browser's error. That page reloads by itself once
-  the server answers again (checked when the device reports being online, and every 5 seconds). It is the only user-facing text outside `messages/`, since it has to work
-  without the server.
+  the server answers again (checked when the device reports being online, and every 5 seconds).
+  It is the only user-facing text outside `messages/`, since it has to work without the server.
 - The worker is registered in production builds only. The proxy lets the manifest, icons, worker
   and offline page through without a session, as installing needs them before signing in.
 - Sticky bars pad themselves past the iPhone's home indicator (`env(safe-area-inset-bottom)`).

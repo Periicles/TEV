@@ -88,6 +88,21 @@
     "unpaidExpenses": "{count, plural, one {# expense without a payer is not counted} other {# expenses without a payer are not counted}}.",
     "paidBy": "paid by {name}"
   },
+  "export": {
+    "button": "Export",
+    "sheet": "Expenses",
+    "date": "Date",
+    "label": "Expense",
+    "amount": "Amount ({currency})",
+    "category": "Category",
+    "paymentMethod": "Payment method",
+    "paidBy": "Paid by",
+    "participants": "Split between",
+    "originalAmount": "Original amount",
+    "currency": "Currency",
+    "rate": "Rate (1 {currency} =)",
+    "notes": "Notes"
+  },
   "expenseList": {
     "search": "Search expenses",
     "searchPlaceholder": "Search: label, category, amount…",
