@@ -342,7 +342,7 @@ export function ExpenseForm({
           {tAll(`errors.${state.error}`)}
         </p>
       )}
-      <Button type="submit" size="lg" disabled={pending}>
+      <Button type="submit" size="lg" loading={pending}>
         {expense.id ? t("save") : t("create")}
       </Button>
     </form>

@@ -65,7 +65,7 @@ export function LoginForm() {
               {t(error)}
             </p>
           )}
-          <Button type="submit" disabled={pending} className="w-full">
+          <Button type="submit" loading={pending} className="w-full">
             {t("submit")}
           </Button>
         </form>
