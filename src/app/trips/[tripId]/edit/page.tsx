@@ -1,19 +1,22 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { removeTrip } from "@/app/trips/actions";
 import { DeleteButton } from "@/components/delete-button";
+import { MembersSection } from "@/components/members-section";
 import { TripForm } from "@/components/trip-form";
 import { currencyOptions } from "@/lib/currencies";
 import { amountInput } from "@/server/expense-form-data";
 import { loadTripPage } from "@/server/pages";
+import { listMembers } from "@/server/trips";
 
 export default async function EditTripPage({ params }: PageProps<"/trips/[tripId]/edit">) {
   const { tripId } = await params;
-  const [{ trip }, t, tTrips, locale] = await Promise.all([
+  const [{ trip, userId }, t, tTrips, locale] = await Promise.all([
     loadTripPage(tripId),
     getTranslations("tripForm"),
     getTranslations("trips"),
     getLocale(),
   ]);
+  const { owner, members } = await listMembers(userId, trip.id);
 
   return (
     <main className="mx-auto w-full max-w-lg flex-1 px-4 py-8">
@@ -36,14 +39,26 @@ export default async function EditTripPage({ params }: PageProps<"/trips/[tripId
           participants: trip.participants.map((p) => ({ id: p.id, name: p.name })),
         }}
       />
-      <div className="mt-8 border-t pt-4">
-        <DeleteButton
-          label={tTrips("delete")}
-          title={tTrips("deleteTitle", { name: trip.name })}
-          description={tTrips("deleteDescription")}
-          action={removeTrip.bind(null, trip.id)}
+      <div className="mt-8 border-t pt-6">
+        <MembersSection
+          tripId={trip.id}
+          tripName={trip.name}
+          owner={owner}
+          members={members}
+          userId={userId}
         />
       </div>
+      {/* Only the owner deletes the trip; members can leave it instead. */}
+      {owner.id === userId && (
+        <div className="mt-8 border-t pt-4">
+          <DeleteButton
+            label={tTrips("delete")}
+            title={tTrips("deleteTitle", { name: trip.name })}
+            description={tTrips("deleteDescription")}
+            action={removeTrip.bind(null, trip.id)}
+          />
+        </div>
+      )}
     </main>
   );
 }

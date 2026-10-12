@@ -53,6 +53,27 @@ export const trip = pgTable(
   ],
 );
 
+/**
+ * Accounts a trip is shared with, besides its owner (`trip.userId`). Members see and edit the trip
+ * and its expenses; only the owner deletes the trip and manages members.
+ */
+export const tripMember = pgTable(
+  "trip_member",
+  {
+    tripId: uuid("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.tripId, table.userId] }),
+    index("trip_member_user_idx").on(table.userId),
+  ],
+);
+
 /** People sharing a trip's expenses. Their count divides the totals. */
 export const participant = pgTable(
   "participant",

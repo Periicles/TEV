@@ -1,7 +1,8 @@
-import { FileSpreadsheetIcon, PlusIcon } from "lucide-react";
+import { FileSpreadsheetIcon, PlusIcon, UsersIcon } from "lucide-react";
 import Link from "next/link";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { BudgetBar } from "@/components/budget-bar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMoney } from "@/lib/money";
@@ -74,6 +75,14 @@ export default async function Home() {
                         .filter(Boolean)
                         .join(" · ")}
                     </CardDescription>
+                    {trip.shared && (
+                      <Badge variant="secondary" className="mt-1 w-fit" data-testid="shared">
+                        <UsersIcon />
+                        {trip.ownerId === user.id
+                          ? t("shared")
+                          : t("sharedBy", { name: trip.ownerName })}
+                      </Badge>
+                    )}
                     {trip.budgetMinor !== null && (
                       <BudgetBar
                         compact

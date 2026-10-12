@@ -19,7 +19,7 @@ export async function GET(_request: Request, ctx: RouteContext<"/trips/[tripId]/
     throw error;
   }
   const [categories, t, tTrip, tCategories, locale] = await Promise.all([
-    listCategories(session.user.id),
+    listCategories(trip.userId),
     getTranslations("export"),
     getTranslations("trip"),
     getTranslations("categories"),

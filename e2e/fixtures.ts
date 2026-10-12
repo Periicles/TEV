@@ -6,6 +6,13 @@ export const E2E_USER = {
   password: "e2e-password-1234",
 };
 
+/** A second account, to share trips with. Same password as the first. */
+export const E2E_MEMBER = {
+  email: "e2e-member@test.local",
+  name: "Léa",
+  password: E2E_USER.password,
+};
+
 /** Changes on every run, so a rate-limit window left by a previous run never carries over. */
 const runId = `${Date.now()}`;
 
@@ -28,10 +35,10 @@ export const test = base.extend({
 
 export { expect } from "@playwright/test";
 
-export async function signIn(page: Page) {
+export async function signIn(page: Page, account = E2E_USER) {
   await page.goto("/login");
-  await page.getByLabel("Email", { exact: true }).fill(E2E_USER.email);
-  await page.getByLabel("Mot de passe", { exact: true }).fill(E2E_USER.password);
+  await page.getByLabel("Email", { exact: true }).fill(account.email);
+  await page.getByLabel("Mot de passe", { exact: true }).fill(account.password);
   await page.getByRole("button", { name: "Se connecter" }).click();
   await page.waitForURL("/");
 }

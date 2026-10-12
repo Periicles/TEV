@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { E2E_USER } from "./fixtures";
+import { E2E_MEMBER, E2E_USER } from "./fixtures";
 
 function userScript(...args: string[]) {
   execFileSync(
@@ -12,11 +12,13 @@ function userScript(...args: string[]) {
   );
 }
 
-/** Makes sure the E2E account exists with the expected password, using the real CLI. */
+/** Makes sure the E2E accounts exist with the expected password, using the real CLI. */
 export default function globalSetup() {
-  try {
-    userScript("create", E2E_USER.email, E2E_USER.name);
-  } catch {
-    userScript("password", E2E_USER.email);
+  for (const account of [E2E_USER, E2E_MEMBER]) {
+    try {
+      userScript("create", account.email, account.name);
+    } catch {
+      userScript("password", account.email);
+    }
   }
 }

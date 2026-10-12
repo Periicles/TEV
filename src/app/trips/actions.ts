@@ -10,6 +10,7 @@ import { requireSession } from "@/lib/session";
 import { officialRate, type OfficialRate } from "@/server/exchange-rates";
 import { importTrip, type ImportInput } from "@/server/import";
 import {
+  addMember,
   createExpense,
   createTrip,
   deleteExpense,
@@ -17,6 +18,7 @@ import {
   getTrip,
   InputError,
   NotFoundError,
+  removeMember,
   restoreExpense,
   restoreTrip,
   updateExpense,
@@ -200,4 +202,38 @@ export async function importSpreadsheet(input: ImportInput): Promise<FormState> 
   }
   await flash({ kind: "tripImported", count: input.expenses.length });
   redirect(`/trips/${tripId}`);
+}
+
+/** Shares the trip with the account using `email` (owner only). */
+export async function addTripMember(tripId: string, email: string): Promise<ErrorCode | undefined> {
+  const { user } = await requireSession();
+  if (!email.trim()) return "required";
+  try {
+    await addMember(user.id, tripId, email);
+  } catch (error) {
+    return failure(error).error ?? "unexpected";
+  }
+  revalidatePath("/", "layout");
+}
+
+/** Takes a member off the trip (owner only). */
+export async function removeTripMember(
+  tripId: string,
+  memberId: string,
+): Promise<ErrorCode | undefined> {
+  const { user } = await requireSession();
+  try {
+    await removeMember(user.id, tripId, memberId);
+  } catch (error) {
+    return failure(error).error ?? "unexpected";
+  }
+  revalidatePath("/", "layout");
+}
+
+/** Leaves a trip shared with the user, then goes back to the trips list. */
+export async function leaveTrip(tripId: string) {
+  const { user } = await requireSession();
+  await removeMember(user.id, tripId, user.id);
+  await flash({ kind: "tripLeft" });
+  redirect("/");
 }

@@ -1,14 +1,23 @@
-import { and, asc, desc, eq, inArray, isNotNull, isNull, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, exists, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { category, expense, expenseParticipant, participant, trip } from "@/db/schema";
+import {
+  category,
+  expense,
+  expenseParticipant,
+  participant,
+  trip,
+  tripMember,
+  user,
+} from "@/db/schema";
 import { convert, isCurrency } from "@/lib/money";
 import type { ErrorCode } from "@/i18n/errors";
 import { summarizeTrip } from "@/lib/summary";
 
 /**
  * Data access for trips and expenses. Every function takes the signed-in user's id and only ever
- * reads or writes that user's rows; anything else behaves as if it did not exist.
+ * reads or writes the trips that user owns or was added to as a member; anything else behaves as
+ * if it did not exist. Members can do everything but delete the trip and manage its members.
  */
 
 export const DEFAULT_CATEGORY_KEYS = [
@@ -81,7 +90,24 @@ export type ExpenseInput = z.infer<typeof expenseInput>;
 /** How long a deleted trip or expense can be restored before it is purged. */
 const RESTORE_WINDOW_MS = 60 * 60 * 1000;
 
-async function findTrip(userId: string, tripId: string, { deleted = false } = {}) {
+/** Trips the user owns or is a member of. */
+function accessibleBy(userId: string) {
+  return or(
+    eq(trip.userId, userId),
+    exists(
+      db
+        .select({ one: sql`1` })
+        .from(tripMember)
+        .where(and(eq(tripMember.tripId, trip.id), eq(tripMember.userId, userId))),
+    ),
+  );
+}
+
+async function findTrip(
+  userId: string,
+  tripId: string,
+  { deleted = false, ownerOnly = false } = {},
+) {
   if (!id.safeParse(tripId).success) throw new NotFoundError();
   const [row] = await db
     .select()
@@ -89,7 +115,7 @@ async function findTrip(userId: string, tripId: string, { deleted = false } = {}
     .where(
       and(
         eq(trip.id, tripId),
-        eq(trip.userId, userId),
+        ownerOnly ? eq(trip.userId, userId) : accessibleBy(userId),
         deleted ? isNotNull(trip.deletedAt) : isNull(trip.deletedAt),
       ),
     );
@@ -106,7 +132,7 @@ async function findExpense(userId: string, expenseId: string, { deleted = false 
     .where(
       and(
         eq(expense.id, expenseId),
-        eq(trip.userId, userId),
+        accessibleBy(userId),
         isNull(trip.deletedAt),
         deleted ? isNotNull(expense.deletedAt) : isNull(expense.deletedAt),
       ),
@@ -124,24 +150,36 @@ export async function listTrips(userId: string) {
       budgetMinor: trip.budgetMinor,
       startDate: trip.startDate,
       endDate: trip.endDate,
+      ownerId: trip.userId,
+      ownerName: user.name,
+      memberCount:
+        sql<number>`(select count(*) from ${tripMember} where ${tripMember.tripId} = ${trip.id})`.mapWith(
+          Number,
+        ),
       totalMinor: sql<number>`coalesce(sum(${expense.baseAmountMinor}), 0)`.mapWith(Number),
       expenseCount: sql<number>`count(${expense.id})`.mapWith(Number),
     })
     .from(trip)
+    .innerJoin(user, eq(user.id, trip.userId))
     .leftJoin(expense, and(eq(expense.tripId, trip.id), isNull(expense.deletedAt)))
-    .where(and(eq(trip.userId, userId), isNull(trip.deletedAt)))
-    .groupBy(trip.id)
+    .where(and(accessibleBy(userId), isNull(trip.deletedAt)))
+    .groupBy(trip.id, user.name)
     .orderBy(sql`${trip.startDate} desc nulls last`, desc(trip.createdAt));
 
   const counts = await db
     .select({ tripId: participant.tripId, count: sql<number>`count(*)`.mapWith(Number) })
     .from(participant)
     .innerJoin(trip, eq(participant.tripId, trip.id))
-    .where(eq(trip.userId, userId))
+    .where(accessibleBy(userId))
     .groupBy(participant.tripId);
   const participantCount = new Map(counts.map((c) => [c.tripId, c.count]));
 
-  return trips.map((t) => ({ ...t, participantCount: participantCount.get(t.id) ?? 0 }));
+  return trips.map(({ memberCount, ...t }) => ({
+    ...t,
+    participantCount: participantCount.get(t.id) ?? 0,
+    /** Whether other accounts can see this trip: it has members, or it is someone else's. */
+    shared: memberCount > 0 || t.ownerId !== userId,
+  }));
 }
 
 export async function getTrip(userId: string, tripId: string) {
@@ -279,7 +317,7 @@ export async function updateTrip(userId: string, tripId: string, input: TripInpu
   });
 }
 
-/** Deletes for good what was deleted longer ago than the restore window. */
+/** Deletes for good what was deleted longer ago than the restore window, in the user's trips. */
 async function purgeDeleted(userId: string) {
   const cutoff = new Date(Date.now() - RESTORE_WINDOW_MS);
   await db.delete(trip).where(and(eq(trip.userId, userId), lt(trip.deletedAt, cutoff)));
@@ -288,23 +326,20 @@ async function purgeDeleted(userId: string) {
     .where(
       and(
         lt(expense.deletedAt, cutoff),
-        inArray(
-          expense.tripId,
-          db.select({ id: trip.id }).from(trip).where(eq(trip.userId, userId)),
-        ),
+        inArray(expense.tripId, db.select({ id: trip.id }).from(trip).where(accessibleBy(userId))),
       ),
     );
 }
 
-/** Deletes a trip; it can be restored with `restoreTrip` during the restore window. */
+/** Deletes a trip (owner only); it can be restored with `restoreTrip` during the restore window. */
 export async function deleteTrip(userId: string, tripId: string) {
-  const current = await findTrip(userId, tripId);
+  const current = await findTrip(userId, tripId, { ownerOnly: true });
   await db.update(trip).set({ deletedAt: new Date() }).where(eq(trip.id, current.id));
   await purgeDeleted(userId);
 }
 
 export async function restoreTrip(userId: string, tripId: string) {
-  const current = await findTrip(userId, tripId, { deleted: true });
+  const current = await findTrip(userId, tripId, { deleted: true, ownerOnly: true });
   await db.update(trip).set({ deletedAt: null }).where(eq(trip.id, current.id));
   return current.id;
 }
@@ -329,10 +364,12 @@ export async function listCategories(userId: string) {
     .orderBy(asc(category.position));
 }
 
-/** Checks references and computes the amount in the trip's base currency. */
+/**
+ * Checks references and computes the amount in the trip's base currency. A shared trip uses its
+ * owner's categories, so everyone sorts expenses the same way.
+ */
 async function prepareExpense(
-  userId: string,
-  target: { id: string; baseCurrency: string },
+  target: { id: string; userId: string; baseCurrency: string },
   input: ExpenseInput,
 ) {
   const data = expenseInput.parse(input);
@@ -349,7 +386,7 @@ async function prepareExpense(
     const [owned] = await db
       .select({ id: category.id })
       .from(category)
-      .where(and(eq(category.id, data.categoryId), eq(category.userId, userId)));
+      .where(and(eq(category.id, data.categoryId), eq(category.userId, target.userId)));
     if (!owned) throw new NotFoundError();
   }
 
@@ -379,7 +416,7 @@ async function prepareExpense(
 
 export async function createExpense(userId: string, tripId: string, input: ExpenseInput) {
   const target = await findTrip(userId, tripId);
-  const { values, participantIds } = await prepareExpense(userId, target, input);
+  const { values, participantIds } = await prepareExpense(target, input);
   return db.transaction(async (tx) => {
     const [created] = await tx
       .insert(expense)
@@ -403,7 +440,7 @@ export async function getExpense(userId: string, expenseId: string) {
 
 export async function updateExpense(userId: string, expenseId: string, input: ExpenseInput) {
   const found = await findExpense(userId, expenseId);
-  const { values, participantIds } = await prepareExpense(userId, found.trip, input);
+  const { values, participantIds } = await prepareExpense(found.trip, input);
   return db.transaction(async (tx) => {
     const [updated] = await tx
       .update(expense)
@@ -430,4 +467,46 @@ export async function restoreExpense(userId: string, expenseId: string) {
   const found = await findExpense(userId, expenseId, { deleted: true });
   await db.update(expense).set({ deletedAt: null }).where(eq(expense.id, found.expense.id));
   return found.trip.id;
+}
+
+/** The trip's owner, then its members in the order they were added. */
+export async function listMembers(userId: string, tripId: string) {
+  const current = await findTrip(userId, tripId);
+  const [owner] = await db
+    .select({ id: user.id, name: user.name, email: user.email })
+    .from(user)
+    .where(eq(user.id, current.userId));
+  const members = await db
+    .select({ id: user.id, name: user.name, email: user.email })
+    .from(tripMember)
+    .innerJoin(user, eq(user.id, tripMember.userId))
+    .where(eq(tripMember.tripId, current.id))
+    .orderBy(asc(tripMember.createdAt));
+  return { owner, members };
+}
+
+/** Shares a trip with an existing account, found by its email (owner only). */
+export async function addMember(userId: string, tripId: string, email: string) {
+  const current = await findTrip(userId, tripId, { ownerOnly: true });
+  const [found] = await db
+    .select({ id: user.id })
+    .from(user)
+    .where(eq(sql`lower(${user.email})`, email.trim().toLowerCase()));
+  if (!found) throw new InputError("userNotFound");
+  if (found.id === current.userId) throw new InputError("alreadyMember");
+  const [added] = await db
+    .insert(tripMember)
+    .values({ tripId: current.id, userId: found.id })
+    .onConflictDoNothing()
+    .returning();
+  if (!added) throw new InputError("alreadyMember");
+}
+
+/** Removes a member: the owner can remove anyone, a member can leave. */
+export async function removeMember(userId: string, tripId: string, memberId: string) {
+  const current = await findTrip(userId, tripId);
+  if (current.userId !== userId && memberId !== userId) throw new NotFoundError();
+  await db
+    .delete(tripMember)
+    .where(and(eq(tripMember.tripId, current.id), eq(tripMember.userId, memberId)));
 }
