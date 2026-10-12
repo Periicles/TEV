@@ -187,7 +187,7 @@ export function TripForm({
           {tErrors(state.error)}
         </p>
       )}
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" loading={pending}>
         {trip.id ? t("save") : t("create")}
       </Button>
     </form>

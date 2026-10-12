@@ -33,7 +33,7 @@ export function DeleteButton({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" className="text-destructive" disabled={pending}>
+        <Button variant="ghost" className="text-destructive" loading={pending}>
           {label}
         </Button>
       </AlertDialogTrigger>

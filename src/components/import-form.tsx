@@ -471,7 +471,7 @@ export function ImportForm({
               {tErrors(error)}
             </p>
           )}
-          <Button type="button" size="lg" disabled={!ready || pending} onClick={submit}>
+          <Button type="button" size="lg" disabled={!ready} loading={pending} onClick={submit}>
             {t("submit", { count: rows.length })}
           </Button>
         </>
