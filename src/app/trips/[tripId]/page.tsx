@@ -1,4 +1,4 @@
-import { ChevronLeftIcon, PencilIcon, PlusIcon } from "lucide-react";
+import { ChevronLeftIcon, DownloadIcon, PencilIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { categoryLabel } from "@/components/category-label";
@@ -15,14 +15,17 @@ import { loadTripPage } from "@/server/pages";
 
 export default async function TripPage({ params }: PageProps<"/trips/[tripId]">) {
   const { tripId } = await params;
-  const [{ trip, categories }, t, tTrips, tCategories, locale, format] = await Promise.all([
-    loadTripPage(tripId),
-    getTranslations("trip"),
-    getTranslations("trips"),
-    getTranslations("categories"),
-    getLocale(),
-    getFormatter(),
-  ]);
+  const [{ trip, categories }, t, tTrips, tExport, tCategories, locale, format] = await Promise.all(
+    [
+      loadTripPage(tripId),
+      getTranslations("trip"),
+      getTranslations("trips"),
+      getTranslations("export"),
+      getTranslations("categories"),
+      getLocale(),
+      getFormatter(),
+    ],
+  );
 
   const money = (minor: number, currency = trip.baseCurrency) =>
     formatMoney(minor, currency, locale);
@@ -54,7 +57,7 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 pt-6 pb-28 lg:max-w-6xl lg:gap-8 lg:pb-12">
       <div className="flex items-start justify-between gap-4">
-        <div className="grid gap-1">
+        <div className="grid min-w-0 gap-1">
           <Link
             href="/"
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -62,17 +65,27 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
             <ChevronLeftIcon className="size-4" />
             {tTrips("back")}
           </Link>
-          <h1 className="text-2xl font-semibold">{trip.name}</h1>
+          <h1 className="text-2xl font-semibold wrap-anywhere">{trip.name}</h1>
           <p className="text-sm text-muted-foreground">
             {trip.participants.map((p) => p.name).join(", ")}
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/trips/${trip.id}/edit`}>
-            <PencilIcon />
-            {tTrips("edit")}
-          </Link>
-        </Button>
+        <div className="flex shrink-0 gap-2">
+          <Button asChild variant="outline" size="sm">
+            {/* A plain link: the route answers with a file, not a page. */}
+            <a href={`/trips/${trip.id}/export`} download>
+              <DownloadIcon />
+              {/* Icon only on phones, where the trip's name needs the room. */}
+              <span className="sr-only sm:not-sr-only">{tExport("button")}</span>
+            </a>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/trips/${trip.id}/edit`}>
+              <PencilIcon />
+              {tTrips("edit")}
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Desktop: summary in a sticky column on the left, expenses on the right. */}

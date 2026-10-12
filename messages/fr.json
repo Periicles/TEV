@@ -88,6 +88,21 @@
     "unpaidExpenses": "{count, plural, one {# dépense sans payeur n'est pas comptée} other {# dépenses sans payeur ne sont pas comptées}}.",
     "paidBy": "payé par {name}"
   },
+  "export": {
+    "button": "Exporter",
+    "sheet": "Dépenses",
+    "date": "Date",
+    "label": "Libellé",
+    "amount": "Montant ({currency})",
+    "category": "Catégorie",
+    "paymentMethod": "Moyen de paiement",
+    "paidBy": "Payé par",
+    "participants": "Partagé entre",
+    "originalAmount": "Montant d'origine",
+    "currency": "Devise",
+    "rate": "Taux (1 {currency} =)",
+    "notes": "Notes"
+  },
   "expenseList": {
     "search": "Rechercher une dépense",
     "searchPlaceholder": "Rechercher : libellé, catégorie, montant…",
