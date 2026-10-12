@@ -22,7 +22,18 @@ test("rejects a wrong password", async ({ page }) => {
 
 test("signs in and out", async ({ page }) => {
   await page.goto("/login");
+  // Holds the sign-in request, to see the button while it waits.
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => (release = resolve));
+  await page.route("**/api/auth/sign-in/email", async (route) => {
+    await held;
+    await route.continue();
+  });
   await signIn(page);
+  const button = page.getByRole("button", { name: "Se connecter" });
+  await expect(button).toBeDisabled();
+  await expect(button).toHaveAttribute("aria-busy", "true");
+  release();
   await expect(page.getByRole("heading", { name: "Mes voyages" })).toBeVisible();
 
   await page.getByRole("button", { name: "Préférences" }).click();
