@@ -119,6 +119,15 @@ browser ([read-excel-file](https://www.npmjs.com/package/read-excel-file)) and c
 `e2e/fixtures/budget.xlsx` is a small fictional file with the same layout as the original
 spreadsheet (formulas, `-` dates, a totals row, a side table); unit and end-to-end tests use it.
 
+## Export
+
+_Export_ on a trip downloads its expenses as an `.xlsx` file named after the trip
+(`/trips/<id>/export`, `src/lib/trip-export.ts`), one row per expense, oldest first: date, label,
+amount in the base currency, category, payment method, payer (when the trip tracks who paid),
+participants, then the original amount, currency and rate for foreign-currency expenses, and notes.
+Column titles follow the app's language and keep the names the import recognizes, so an exported
+file imports back with the same expenses and total.
+
 ## Accounts and database
 
 The app only has a login page: there is no sign-up. Accounts are created by the owner, directly in
