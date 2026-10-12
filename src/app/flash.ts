@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
  * the message travels in a short-lived cookie the browser reads (and clears) after navigating.
  */
 export type Flash =
-  | { kind: "tripCreated" | "tripSaved" | "expenseAdded" | "expenseSaved" }
+  | { kind: "tripCreated" | "tripSaved" | "tripLeft" | "expenseAdded" | "expenseSaved" }
   | { kind: "tripImported"; count: number }
   | { kind: "tripDeleted" | "expenseDeleted"; id: string };
 
