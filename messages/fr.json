@@ -45,7 +45,9 @@
     "deleteDescription": "Le voyage et toutes ses dépenses seront définitivement supprimés.",
     "cancel": "Annuler",
     "confirmDelete": "Supprimer",
-    "import": "Importer"
+    "import": "Importer",
+    "shared": "Partagé",
+    "sharedBy": "Partagé par {name}"
   },
   "tripForm": {
     "createTitle": "Nouveau voyage",
@@ -71,6 +73,27 @@
     "removeParticipant": "Retirer {name}",
     "create": "Créer le voyage",
     "save": "Enregistrer"
+  },
+  "members": {
+    "title": "Membres",
+    "description": "Les membres voient et modifient ce voyage et ses dépenses. Seul le propriétaire le supprime et gère les membres.",
+    "ownerHint": "Ajoute un compte existant avec son email.",
+    "owner": "Propriétaire",
+    "you": "toi",
+    "email": "Email du compte",
+    "emailPlaceholder": "lea@exemple.com",
+    "add": "Ajouter",
+    "added": "{name} a accès au voyage.",
+    "remove": "Retirer {name}",
+    "removeTitle": "Retirer {name} du voyage ?",
+    "removeDescription": "{name} ne verra plus ce voyage. Ses dépenses restent.",
+    "removed": "{name} n'a plus accès au voyage.",
+    "confirmRemove": "Retirer",
+    "leave": "Quitter le voyage",
+    "leaveTitle": "Quitter « {name} » ?",
+    "leaveDescription": "Tu ne verras plus ce voyage, sauf si on t'y ajoute à nouveau.",
+    "confirmLeave": "Quitter",
+    "cancel": "Annuler"
   },
   "trip": {
     "total": "Total",
@@ -214,7 +237,8 @@
     "expenseDeleted": "Dépense supprimée",
     "expenseRestored": "Dépense restaurée",
     "undo": "Annuler",
-    "undoFailed": "Trop tard : la suppression est définitive."
+    "undoFailed": "Trop tard : la suppression est définitive.",
+    "tripLeft": "Tu as quitté le voyage"
   },
   "paymentMethods": {
     "card": "Carte",
@@ -258,6 +282,8 @@
     "notFound": "Introuvable.",
     "unexpected": "Une erreur est survenue. Réessaie.",
     "importInvalid": "Le fichier contient des valeurs invalides : vérifie les colonnes choisies.",
-    "lastCategory": "Garde au moins une catégorie."
+    "lastCategory": "Garde au moins une catégorie.",
+    "userNotFound": "Aucun compte avec cet email.",
+    "alreadyMember": "Cette personne a déjà accès au voyage."
   }
 }

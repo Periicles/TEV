@@ -12,13 +12,12 @@ async function orNotFound<T>(lookup: () => Promise<T>): Promise<T> {
   }
 }
 
+/** A trip and the categories its expenses use: its owner's, also on a trip shared with the user. */
 export async function loadTripPage(tripId: string) {
   const { user } = await requireSession();
-  const [trip, categories] = await Promise.all([
-    orNotFound(() => getTripDetails(user.id, tripId)),
-    listCategories(user.id),
-  ]);
-  return { trip, categories };
+  const trip = await orNotFound(() => getTripDetails(user.id, tripId));
+  const categories = await listCategories(trip.userId);
+  return { trip, categories, userId: user.id };
 }
 
 export async function loadExpensePage(tripId: string, expenseId: string) {
