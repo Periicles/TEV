@@ -130,7 +130,7 @@ bars.
 - `public/sw.js` is a minimal service worker. It caches no app data, so balances are never stale:
   pages always come from the network and, when it is down, a page load shows `public/offline.html`
   (French or English, like the app) instead of the browser's error. That page reloads by itself once
-  the network is back. It is the only user-facing text outside `messages/`, since it has to work
+  the server answers again (checked when the device reports being online, and every 5 seconds). It is the only user-facing text outside `messages/`, since it has to work
   without the server.
 - The worker is registered in production builds only. The proxy lets the manifest, icons, worker
   and offline page through without a session, as installing needs them before signing in.

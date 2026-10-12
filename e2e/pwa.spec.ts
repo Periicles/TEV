@@ -37,7 +37,9 @@ test("shows an offline page when the network is down, then comes back", async ({
   await page.reload();
   await expect(page.getByRole("heading", { name: "Pas de connexion" })).toBeVisible();
 
-  // Back online, the page reloads by itself.
+  // Back online, the page reloads by itself once the server answers (it checks every 5 s).
   await context.setOffline(false);
-  await expect(page.getByRole("heading", { name: "Mes voyages" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Mes voyages" })).toBeVisible({
+    timeout: 15_000,
+  });
 });

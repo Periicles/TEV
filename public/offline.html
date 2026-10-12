@@ -80,8 +80,18 @@
         document.getElementById("retry").textContent = "Try again";
       }
       document.getElementById("retry").addEventListener("click", () => location.reload());
-      // Reloads by itself as soon as the network is back.
-      addEventListener("online", () => location.reload());
+      // Reloads by itself once the server answers again. The "online" event alone is not enough: it
+      // fires as soon as the phone joins a network, often before the internet is reachable.
+      async function reloadWhenBack() {
+        try {
+          const response = await fetch("/manifest.webmanifest", { cache: "no-store" });
+          if (response.ok) location.reload();
+        } catch {
+          // Still offline: the next attempt will tell.
+        }
+      }
+      addEventListener("online", reloadWhenBack);
+      setInterval(reloadWhenBack, 5000);
     </script>
   </body>
 </html>
