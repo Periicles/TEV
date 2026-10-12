@@ -119,6 +119,23 @@ browser ([read-excel-file](https://www.npmjs.com/package/read-excel-file)) and c
 `e2e/fixtures/budget.xlsx` is a small fictional file with the same layout as the original
 spreadsheet (formulas, `-` dates, a totals row, a side table); unit and end-to-end tests use it.
 
+## Installing on a phone
+
+TEV is a Progressive Web App: _Add to Home Screen_ (Safari on iOS) or _Install app_ (Chrome on
+Android, desktop Chrome and Edge) gives it an icon and opens it full screen, without the browser's
+bars.
+
+- `src/app/manifest.ts` describes the installed app. The icons (a neon ring) are drawn by
+  `scripts/icons.ts`: after changing the drawing, run `pnpm icons` and commit the generated files.
+- `public/sw.js` is a minimal service worker. It caches no app data, so balances are never stale:
+  pages always come from the network and, when it is down, a page load shows `public/offline.html`
+  (French or English, like the app) instead of the browser's error. That page reloads by itself once
+  the network is back. It is the only user-facing text outside `messages/`, since it has to work
+  without the server.
+- The worker is registered in production builds only. The proxy lets the manifest, icons, worker
+  and offline page through without a session, as installing needs them before signing in.
+- Sticky bars pad themselves past the iPhone's home indicator (`env(safe-area-inset-bottom)`).
+
 ## Accounts and database
 
 The app only has a login page: there is no sign-up. Accounts are created by the owner, directly in
