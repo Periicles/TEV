@@ -184,6 +184,10 @@ and clean up after themselves; CI runs them against its own PostgreSQL service.
 ## UI components
 
 Components from shadcn/ui live in `src/components/ui` and are owned by this repo: edit them freely.
+
+While a page loads, its route's `loading.tsx` shows a skeleton shaped like it
+(`src/components/page-skeletons.tsx`). Buttons that start a longer action (sign in, save, import,
+delete) take `loading`, which shows a spinner, disables them and sets `aria-busy`.
 Add a new one with `pnpm dlx shadcn@latest add <component>` (configuration in `components.json`).
 
 ## Internationalization
