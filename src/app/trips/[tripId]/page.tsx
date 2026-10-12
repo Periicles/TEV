@@ -52,7 +52,7 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
   const days = Map.groupBy(trip.expenses, (e) => e.date);
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 pt-6 pb-28 lg:max-w-6xl lg:gap-8 lg:pb-12">
+    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 pt-6 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:max-w-6xl lg:gap-8 lg:pb-12">
       <div className="flex items-start justify-between gap-4">
         <div className="grid gap-1">
           <Link
@@ -225,7 +225,7 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
         </section>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 border-t bg-background/90 p-4 backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:p-0 lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 border-t bg-background/90 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:p-0 lg:hidden">
         <Button asChild size="lg" className="w-full sm:w-auto">
           <Link href={`/trips/${trip.id}/expenses/new`}>
             <PlusIcon />

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>TEV — Hors ligne</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --background: #ffffff;
+        --foreground: #0a0a0a;
+        --muted: #737373;
+        --primary: #007a8f;
+        --glow: transparent;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --background: #0a0a0a;
+          --foreground: #fafafa;
+          --muted: #a1a1a1;
+          --primary: #00f1fb;
+          --glow: rgb(0 241 251 / 45%);
+        }
+      }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+        box-sizing: border-box;
+        background: var(--background);
+        color: var(--foreground);
+        font-family: system-ui, sans-serif;
+        text-align: center;
+      }
+      .brand {
+        color: var(--primary);
+        text-shadow: 0 0 14px var(--glow);
+        font-weight: 600;
+        letter-spacing: 0.05em;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 1rem 0 0.5rem;
+      }
+      p {
+        color: var(--muted);
+        margin: 0 0 1.5rem;
+      }
+      button {
+        font: inherit;
+        padding: 0.5rem 1.25rem;
+        border: 0;
+        border-radius: 0.5rem;
+        background: var(--primary);
+        color: var(--background);
+        box-shadow: 0 0 14px var(--glow);
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="brand">TEV</div>
+      <h1 id="title">Pas de connexion</h1>
+      <p id="text">Tes dépenses sont en sécurité. Reconnecte-toi au réseau, puis réessaie.</p>
+      <button id="retry" type="button">Réessayer</button>
+    </main>
+    <script>
+      // Same language as the app: the one chosen in its preferences, else the device's.
+      const chosen = document.cookie.match(/(?:^|; )tev-language=(fr|en)/)?.[1];
+      const english = chosen ? chosen === "en" : !navigator.language.startsWith("fr");
+      if (english) {
+        document.documentElement.lang = "en";
+        document.title = "TEV — Offline";
+        document.getElementById("title").textContent = "No connection";
+        document.getElementById("text").textContent =
+          "Your expenses are safe. Get back online, then try again.";
+        document.getElementById("retry").textContent = "Try again";
+      }
+      document.getElementById("retry").addEventListener("click", () => location.reload());
+      // Reloads by itself as soon as the network is back.
+      addEventListener("online", () => location.reload());
+    </script>
+  </body>
+</html>

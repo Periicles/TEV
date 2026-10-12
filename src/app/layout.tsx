@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Suspense } from "react";
 import { AppHeader } from "@/components/app-header";
 import { FlashToaster } from "@/components/flash-toaster";
 import { LocaleProvider } from "@/components/locale-provider";
+import { ServiceWorker } from "@/components/service-worker";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,6 +21,18 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "TEV",
   description: "Suivi des dépenses de voyage",
+  applicationName: "TEV",
+  // Installed on an iPhone's home screen: opens full screen, under a black status bar.
+  appleWebApp: { capable: true, title: "TEV", statusBarStyle: "black" },
+};
+
+export const viewport: Viewport = {
+  // Lets the page reach the screen's edges; the sticky bars pad themselves past the home indicator.
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -43,6 +56,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <AppHeader />
               {children}
               <FlashToaster />
+              <ServiceWorker />
             </LocaleProvider>
           </Suspense>
         </ThemeProvider>

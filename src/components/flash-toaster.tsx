@@ -75,7 +75,7 @@ export function FlashToaster() {
     <Toaster
       // At the bottom, clear of the header's buttons; on phones, above the sticky "Add" bar.
       position="bottom-center"
-      mobileOffset={{ bottom: 96 }}
+      mobileOffset={{ bottom: "calc(96px + env(safe-area-inset-bottom))" }}
       visibleToasts={2}
       theme={resolvedTheme === "dark" ? "dark" : "light"}
       toastOptions={{ className: "font-sans" }}
