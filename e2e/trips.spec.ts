@@ -182,6 +182,9 @@ test("suggests the official rate and keeps it when saving", async ({ page }) => 
   await page.getByRole("button", { name: "Ajouter", exact: true }).click();
   await expect(page.getByTestId("trip-total")).toHaveText("24,06 €");
 
+  // On a phone the "added" toast can cover the row; a pointer resting on it would keep it open.
+  await page.mouse.move(0, 0);
+  await expect(page.getByText("Dépense ajoutée")).toBeHidden({ timeout: 10_000 });
   await page.getByRole("link", { name: /Sushiro/ }).click();
   await expect(main(page).getByTestId("rate-status")).toHaveText("Taux officiel du 20 mars 2025.");
 
@@ -206,7 +209,7 @@ test("shows a budget and daily totals when the trip asks for them", async ({ pag
   await main(page).getByLabel("Total par jour").check();
   await page.getByRole("button", { name: "Créer le voyage" }).click();
   await expect(page.getByRole("heading", { name })).toBeVisible();
-  await expect(page.getByTestId("budget-left")).toHaveText(/^Reste 100,00\s€$/);
+  await expect(main(page).getByTestId("budget-left")).toHaveText(/^Reste 100,00\s€$/);
 
   for (const [label, amount] of [
     ["Musée", "30"],
@@ -220,8 +223,8 @@ test("shows a budget and daily totals when the trip asks for them", async ({ pag
     await page.getByRole("button", { name: "Ajouter", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Dépenses" })).toBeVisible();
   }
-  await expect(page.getByTestId("budget-left")).toHaveText(/^Dépassé de 15,00\s€$/);
-  await expect(page.getByTestId("daily-total")).toHaveText(/^115,00\s€$/);
+  await expect(main(page).getByTestId("budget-left")).toHaveText(/^Dépassé de 15,00\s€$/);
+  await expect(main(page).getByTestId("daily-total")).toHaveText(/^115,00\s€$/);
 
   await page.getByRole("link", { name: "Modifier" }).click();
   await page.getByRole("button", { name: "Supprimer le voyage" }).click();

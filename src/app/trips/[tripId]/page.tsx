@@ -176,7 +176,7 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
           )}
         </aside>
 
-        <section className="grid gap-3">
+        <section className="grid min-w-0 grid-cols-1 gap-3">
           <div className="flex items-center justify-between gap-4">
             <h2 className="font-semibold">{t("expenses")}</h2>
             <Button asChild className="hidden lg:inline-flex">

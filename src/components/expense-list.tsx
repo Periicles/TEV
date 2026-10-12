@@ -66,7 +66,7 @@ export function ExpenseList({
   }, [remaining]);
 
   return (
-    <div className="grid gap-3">
+    <div className="grid grid-cols-1 gap-3">
       {rows.length > PAGE_SIZE / 3 && (
         <div className="relative">
           <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -91,7 +91,7 @@ export function ExpenseList({
       )}
 
       {[...groups.entries()].map(([date, dayRows]) => (
-        <div key={date} className="grid gap-1">
+        <div key={date} className="grid grid-cols-1 gap-1">
           <h3 className="flex justify-between gap-4 text-xs font-medium tracking-wide text-muted-foreground uppercase">
             <span>{days[date]?.label}</span>
             {days[date]?.total && (
