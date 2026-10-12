@@ -285,7 +285,9 @@ export async function updateTrip(userId: string, tripId: string, input: TripInpu
           .where(inArray(expense.paidBy, removed))
           .limit(1),
       ]);
-      if (shares.length > 0 || payments.length > 0) throw new InputError("participantInUse");
+      // Their expenses' split (or who paid them) would no longer add up.
+      if (shares.length > 0) throw new InputError("participantShares");
+      if (payments.length > 0) throw new InputError("participantPaid");
       await tx.delete(participant).where(inArray(participant.id, removed));
     }
 
