@@ -54,27 +54,10 @@ export const trip = pgTable(
 );
 
 /**
- * Accounts a trip is shared with, besides its owner (`trip.userId`). Members see and edit the trip
- * and its expenses; only the owner deletes the trip and manages members.
+ * People sharing a trip's expenses. Their count divides the totals. A participant linked to an
+ * account (`userId`) also sees and edits the trip; only its owner (`trip.userId`) deletes it and
+ * links or unlinks accounts.
  */
-export const tripMember = pgTable(
-  "trip_member",
-  {
-    tripId: uuid("trip_id")
-      .notNull()
-      .references(() => trip.id, { onDelete: "cascade" }),
-    userId: text("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (table) => [
-    primaryKey({ columns: [table.tripId, table.userId] }),
-    index("trip_member_user_idx").on(table.userId),
-  ],
-);
-
-/** People sharing a trip's expenses. Their count divides the totals. */
 export const participant = pgTable(
   "participant",
   {
@@ -85,8 +68,14 @@ export const participant = pgTable(
     name: text("name").notNull(),
     /** Display order, also used to hand out rounding remainders deterministically. */
     position: integer("position").notNull(),
+    /** The participant's account, which gives them access to the trip. */
+    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
   },
-  (table) => [index("participant_trip_idx").on(table.tripId)],
+  (table) => [
+    index("participant_trip_idx").on(table.tripId),
+    index("participant_user_idx").on(table.userId),
+    uniqueIndex("participant_trip_user_idx").on(table.tripId, table.userId),
+  ],
 );
 
 /**

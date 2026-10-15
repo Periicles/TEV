@@ -1,23 +1,16 @@
 import { and, asc, desc, eq, exists, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import {
-  category,
-  expense,
-  expenseParticipant,
-  participant,
-  trip,
-  tripMember,
-  user,
-} from "@/db/schema";
+import { category, expense, expenseParticipant, participant, trip, user } from "@/db/schema";
 import { convert, isCurrency } from "@/lib/money";
 import type { ErrorCode } from "@/i18n/errors";
 import { summarizeTrip } from "@/lib/summary";
 
 /**
  * Data access for trips and expenses. Every function takes the signed-in user's id and only ever
- * reads or writes the trips that user owns or was added to as a member; anything else behaves as
- * if it did not exist. Members can do everything but delete the trip and manage its members.
+ * reads or writes the trips that user owns or is a participant of (a participant linked to their
+ * account); anything else behaves as if it did not exist. Participants with an account can do
+ * everything but delete the trip and link or unlink accounts, which only its owner does.
  */
 
 export const DEFAULT_CATEGORY_KEYS = [
@@ -59,7 +52,14 @@ export const tripInput = z
     /** Show each day's total in the expense list. */
     showDailyTotals: z.boolean().default(false),
     participants: z
-      .array(z.object({ id: id.optional(), name: z.string().trim().min(1).max(50) }))
+      .array(
+        z.object({
+          id: id.optional(),
+          name: z.string().trim().min(1).max(50),
+          /** Email of the participant's account, which gives them access to the trip. */
+          email: z.string().trim().toLowerCase().max(254).nullish(),
+        }),
+      )
       .min(1)
       .max(20),
   })
@@ -90,15 +90,15 @@ export type ExpenseInput = z.infer<typeof expenseInput>;
 /** How long a deleted trip or expense can be restored before it is purged. */
 const RESTORE_WINDOW_MS = 60 * 60 * 1000;
 
-/** Trips the user owns or is a member of. */
+/** Trips the user owns or is a participant of. */
 function accessibleBy(userId: string) {
   return or(
     eq(trip.userId, userId),
     exists(
       db
         .select({ one: sql`1` })
-        .from(tripMember)
-        .where(and(eq(tripMember.tripId, trip.id), eq(tripMember.userId, userId))),
+        .from(participant)
+        .where(and(eq(participant.tripId, trip.id), eq(participant.userId, userId))),
     ),
   );
 }
@@ -152,8 +152,9 @@ export async function listTrips(userId: string) {
       endDate: trip.endDate,
       ownerId: trip.userId,
       ownerName: user.name,
+      // Other accounts with access: participants linked to someone else than the owner.
       memberCount:
-        sql<number>`(select count(*) from ${tripMember} where ${tripMember.tripId} = ${trip.id})`.mapWith(
+        sql<number>`(select count(*) from ${participant} where ${participant.tripId} = ${trip.id} and ${participant.userId} <> ${trip.userId})`.mapWith(
           Number,
         ),
       totalMinor: sql<number>`coalesce(sum(${expense.baseAmountMinor}), 0)`.mapWith(Number),
@@ -185,11 +186,41 @@ export async function listTrips(userId: string) {
 export async function getTrip(userId: string, tripId: string) {
   const row = await findTrip(userId, tripId);
   const participants = await db
-    .select()
+    .select({
+      id: participant.id,
+      tripId: participant.tripId,
+      name: participant.name,
+      position: participant.position,
+      userId: participant.userId,
+      email: user.email,
+    })
     .from(participant)
+    .leftJoin(user, eq(user.id, participant.userId))
     .where(eq(participant.tripId, row.id))
     .orderBy(asc(participant.position));
   return { ...row, participants };
+}
+
+/**
+ * The accounts behind the participants' emails, in the same order (`null` without email). Every
+ * email must belong to an account, and an account can only be one participant of a trip.
+ */
+async function accountsFor(participants: { email?: string | null }[]) {
+  const emails = participants.map((p) => p.email || null);
+  const wanted = [...new Set(emails.filter((e): e is string => e !== null))];
+  if (wanted.length < emails.filter(Boolean).length) throw new InputError("duplicateAccount");
+  const found = wanted.length
+    ? await db
+        .select({ id: user.id, email: sql<string>`lower(${user.email})` })
+        .from(user)
+        .where(inArray(sql`lower(${user.email})`, wanted))
+    : [];
+  return emails.map((email) => {
+    if (!email) return null;
+    const account = found.find((f) => f.email === email);
+    if (!account) throw new InputError("userNotFound");
+    return account.id;
+  });
 }
 
 /** A trip with its expenses (newest first) and totals in the base currency. */
@@ -225,6 +256,7 @@ export async function getTripDetails(userId: string, tripId: string) {
 
 export async function createTrip(userId: string, input: TripInput) {
   const data = tripInput.parse(input);
+  const accounts = await accountsFor(data.participants);
   return db.transaction(async (tx) => {
     const [created] = await tx
       .insert(trip)
@@ -239,11 +271,14 @@ export async function createTrip(userId: string, input: TripInput) {
         showDailyTotals: data.showDailyTotals,
       })
       .returning();
-    await tx
-      .insert(participant)
-      .values(
-        data.participants.map((p, position) => ({ tripId: created.id, name: p.name, position })),
-      );
+    await tx.insert(participant).values(
+      data.participants.map((p, position) => ({
+        tripId: created.id,
+        name: p.name,
+        position,
+        userId: accounts[position],
+      })),
+    );
     return created;
   });
 }
@@ -251,6 +286,11 @@ export async function createTrip(userId: string, input: TripInput) {
 export async function updateTrip(userId: string, tripId: string, input: TripInput) {
   const data = tripInput.parse(input);
   const current = await getTrip(userId, tripId);
+  // Only the owner links or unlinks accounts: for anyone else, participants keep theirs.
+  const isOwner = current.userId === userId;
+  const accounts = isOwner
+    ? await accountsFor(data.participants)
+    : data.participants.map((p) => current.participants.find((c) => c.id === p.id)?.userId ?? null);
 
   return db.transaction(async (tx) => {
     // Deleted expenses could not be restored into a trip whose currency or participants changed.
@@ -291,14 +331,19 @@ export async function updateTrip(userId: string, tripId: string, input: TripInpu
       await tx.delete(participant).where(inArray(participant.id, removed));
     }
 
+    // Accounts may move between participants: unlink them all first (one account per trip).
+    await tx.update(participant).set({ userId: null }).where(eq(participant.tripId, current.id));
     for (const [position, p] of data.participants.entries()) {
+      const linked = accounts[position];
       if (p.id) {
         await tx
           .update(participant)
-          .set({ name: p.name, position })
+          .set({ name: p.name, position, userId: linked })
           .where(eq(participant.id, p.id));
       } else {
-        await tx.insert(participant).values({ tripId: current.id, name: p.name, position });
+        await tx
+          .insert(participant)
+          .values({ tripId: current.id, name: p.name, position, userId: linked });
       }
     }
 
@@ -471,44 +516,13 @@ export async function restoreExpense(userId: string, expenseId: string) {
   return found.trip.id;
 }
 
-/** The trip's owner, then its members in the order they were added. */
-export async function listMembers(userId: string, tripId: string) {
+/** Unlinks the user's account from a trip shared with them: they no longer see it. */
+export async function leaveTrip(userId: string, tripId: string) {
   const current = await findTrip(userId, tripId);
-  const [owner] = await db
-    .select({ id: user.id, name: user.name, email: user.email })
-    .from(user)
-    .where(eq(user.id, current.userId));
-  const members = await db
-    .select({ id: user.id, name: user.name, email: user.email })
-    .from(tripMember)
-    .innerJoin(user, eq(user.id, tripMember.userId))
-    .where(eq(tripMember.tripId, current.id))
-    .orderBy(asc(tripMember.createdAt));
-  return { owner, members };
-}
-
-/** Shares a trip with an existing account, found by its email (owner only). */
-export async function addMember(userId: string, tripId: string, email: string) {
-  const current = await findTrip(userId, tripId, { ownerOnly: true });
-  const [found] = await db
-    .select({ id: user.id })
-    .from(user)
-    .where(eq(sql`lower(${user.email})`, email.trim().toLowerCase()));
-  if (!found) throw new InputError("userNotFound");
-  if (found.id === current.userId) throw new InputError("alreadyMember");
-  const [added] = await db
-    .insert(tripMember)
-    .values({ tripId: current.id, userId: found.id })
-    .onConflictDoNothing()
-    .returning();
-  if (!added) throw new InputError("alreadyMember");
-}
-
-/** Removes a member: the owner can remove anyone, a member can leave. */
-export async function removeMember(userId: string, tripId: string, memberId: string) {
-  const current = await findTrip(userId, tripId);
-  if (current.userId !== userId && memberId !== userId) throw new NotFoundError();
+  // The owner deletes their trip instead.
+  if (current.userId === userId) throw new NotFoundError();
   await db
-    .delete(tripMember)
-    .where(and(eq(tripMember.tripId, current.id), eq(tripMember.userId, memberId)));
+    .update(participant)
+    .set({ userId: null })
+    .where(and(eq(participant.tripId, current.id), eq(participant.userId, userId)));
 }
