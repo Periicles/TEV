@@ -78,6 +78,13 @@
       "when": 1792054313152,
       "tag": "0010_participant-accounts",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792054935717,
+      "tag": "0011_notifications",
+      "breakpoints": true
     }
   ]
 }
