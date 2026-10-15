@@ -59,8 +59,11 @@
     "startDate": "Start",
     "endDate": "End",
     "participants": "Participants",
-    "participantsHint": "Expenses are split between them. These are just names: to give someone access to the trip, add them as a member.",
+    "participantsHint": "Expenses are split between them. With their account's email, a participant also sees and edits the trip.",
     "participantName": "Name of participant {number}",
+    "participantEmail": "Account email of participant {number}",
+    "emailPlaceholder": "Account email (optional)",
+    "emailOwnerOnly": "Only the trip's owner adds or removes accounts.",
     "addParticipant": "Add a participant",
     "options": "Options",
     "trackPayers": "Track who paid",
@@ -75,23 +78,9 @@
     "save": "Save"
   },
   "members": {
-    "title": "Members",
-    "description": "Members see and edit this trip and its expenses. Only the owner deletes it and manages members.",
-    "ownerHint": "Add an existing account by its email.",
-    "owner": "Owner",
-    "you": "you",
-    "email": "Account email",
-    "emailPlaceholder": "lea@example.com",
-    "add": "Add",
-    "added": "{name} can now access the trip.",
-    "remove": "Remove {name}",
-    "removeTitle": "Remove {name} from the trip?",
-    "removeDescription": "{name} will no longer see this trip. Their expenses stay.",
-    "removed": "{name} no longer has access to the trip.",
-    "confirmRemove": "Remove",
     "leave": "Leave the trip",
     "leaveTitle": "Leave “{name}”?",
-    "leaveDescription": "You will no longer see this trip, unless you are added again.",
+    "leaveDescription": "You will no longer see this trip, unless you are added again. Your share of the expenses stays.",
     "confirmLeave": "Leave",
     "cancel": "Cancel"
   },
@@ -276,7 +265,7 @@
     "rateRequired": "Enter the exchange rate.",
     "amountTooSmall": "Amount too small once converted.",
     "endBeforeStart": "The end is before the start.",
-    "participantShares": "This participant shares expenses: remove them from those expenses first. To give someone access to the trip, add them as a member instead.",
+    "participantShares": "This participant shares expenses: remove them from those expenses first.",
     "participantPaid": "This participant paid for expenses: set someone else as the payer first.",
     "baseCurrencyLocked": "The base currency can no longer change once expenses exist.",
     "noParticipant": "Choose at least one participant.",
@@ -284,7 +273,7 @@
     "unexpected": "Something went wrong. Please try again.",
     "importInvalid": "The file has invalid values: check the selected columns.",
     "lastCategory": "Keep at least one category.",
-    "userNotFound": "No account with this email.",
-    "alreadyMember": "This person already has access to the trip."
+    "userNotFound": "No account with this email: it must be an existing account.",
+    "duplicateAccount": "An account can only be linked to one participant."
   }
 }

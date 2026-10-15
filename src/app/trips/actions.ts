@@ -10,15 +10,14 @@ import { requireSession } from "@/lib/session";
 import { officialRate, type OfficialRate } from "@/server/exchange-rates";
 import { importTrip, type ImportInput } from "@/server/import";
 import {
-  addMember,
   createExpense,
   createTrip,
   deleteExpense,
   deleteTrip,
   getTrip,
   InputError,
+  leaveTrip as leaveSharedTrip,
   NotFoundError,
-  removeMember,
   restoreExpense,
   restoreTrip,
   updateExpense,
@@ -66,6 +65,7 @@ export async function saveTrip(_state: FormState, form: FormData): Promise<FormS
   const tripId = optional(form, "tripId");
   const ids = form.getAll("participantId").map(String);
   const names = form.getAll("participantName").map((name) => String(name).trim());
+  const emails = form.getAll("participantEmail").map((email) => String(email).trim());
   const baseCurrency = text(form, "baseCurrency");
   const budgetText = text(form, "budget");
   const budgetMinor = budgetText ? parseAmount(budgetText, baseCurrency) : null;
@@ -79,7 +79,7 @@ export async function saveTrip(_state: FormState, form: FormData): Promise<FormS
     budgetMinor,
     showDailyTotals: form.get("showDailyTotals") === "on",
     participants: names
-      .map((name, index) => ({ id: ids[index] || undefined, name }))
+      .map((name, index) => ({ id: ids[index] || undefined, name, email: emails[index] || null }))
       .filter((p) => p.name || p.id),
   };
 
@@ -204,36 +204,10 @@ export async function importSpreadsheet(input: ImportInput): Promise<FormState> 
   redirect(`/trips/${tripId}`);
 }
 
-/** Shares the trip with the account using `email` (owner only). */
-export async function addTripMember(tripId: string, email: string): Promise<ErrorCode | undefined> {
-  const { user } = await requireSession();
-  if (!email.trim()) return "required";
-  try {
-    await addMember(user.id, tripId, email);
-  } catch (error) {
-    return failure(error).error ?? "unexpected";
-  }
-  revalidatePath("/", "layout");
-}
-
-/** Takes a member off the trip (owner only). */
-export async function removeTripMember(
-  tripId: string,
-  memberId: string,
-): Promise<ErrorCode | undefined> {
-  const { user } = await requireSession();
-  try {
-    await removeMember(user.id, tripId, memberId);
-  } catch (error) {
-    return failure(error).error ?? "unexpected";
-  }
-  revalidatePath("/", "layout");
-}
-
 /** Leaves a trip shared with the user, then goes back to the trips list. */
 export async function leaveTrip(tripId: string) {
   const { user } = await requireSession();
-  await removeMember(user.id, tripId, user.id);
+  await leaveSharedTrip(user.id, tripId);
   await flash({ kind: "tripLeft" });
   redirect("/");
 }

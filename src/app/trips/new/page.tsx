@@ -24,7 +24,8 @@ export default async function NewTripPage() {
           trackPayers: false,
           budget: "",
           showDailyTotals: false,
-          participants: [{ name: user.name }],
+          // The creator is the first participant, linked to their own account.
+          participants: [{ name: user.name, email: user.email }],
         }}
       />
     </main>

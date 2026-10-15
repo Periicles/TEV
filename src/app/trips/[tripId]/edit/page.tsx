@@ -1,12 +1,11 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { removeTrip } from "@/app/trips/actions";
 import { DeleteButton } from "@/components/delete-button";
-import { MembersSection } from "@/components/members-section";
+import { LeaveTripButton } from "@/components/leave-trip-button";
 import { TripForm } from "@/components/trip-form";
 import { currencyOptions } from "@/lib/currencies";
 import { amountInput } from "@/server/expense-form-data";
 import { loadTripPage } from "@/server/pages";
-import { listMembers } from "@/server/trips";
 
 export default async function EditTripPage({ params }: PageProps<"/trips/[tripId]/edit">) {
   const { tripId } = await params;
@@ -16,7 +15,7 @@ export default async function EditTripPage({ params }: PageProps<"/trips/[tripId
     getTranslations("trips"),
     getLocale(),
   ]);
-  const { owner, members } = await listMembers(userId, trip.id);
+  const isOwner = trip.userId === userId;
 
   return (
     <main className="mx-auto w-full max-w-lg flex-1 px-4 py-8">
@@ -24,6 +23,7 @@ export default async function EditTripPage({ params }: PageProps<"/trips/[tripId
       <TripForm
         key={trip.updatedAt.toISOString()}
         currencies={currencyOptions(locale, [trip.baseCurrency])}
+        canLinkAccounts={isOwner}
         trip={{
           id: trip.id,
           name: trip.name,
@@ -36,29 +36,22 @@ export default async function EditTripPage({ params }: PageProps<"/trips/[tripId
               ? ""
               : amountInput(trip.budgetMinor, trip.baseCurrency, locale),
           showDailyTotals: trip.showDailyTotals,
-          participants: trip.participants.map((p) => ({ id: p.id, name: p.name })),
+          participants: trip.participants.map((p) => ({ id: p.id, name: p.name, email: p.email })),
         }}
       />
-      <div className="mt-8 border-t pt-6">
-        <MembersSection
-          tripId={trip.id}
-          tripName={trip.name}
-          owner={owner}
-          members={members}
-          userId={userId}
-        />
-      </div>
-      {/* Only the owner deletes the trip; members can leave it instead. */}
-      {owner.id === userId && (
-        <div className="mt-8 border-t pt-4">
+      {/* Only the owner deletes the trip; someone it is shared with can leave it instead. */}
+      <div className="mt-8 border-t pt-4">
+        {isOwner ? (
           <DeleteButton
             label={tTrips("delete")}
             title={tTrips("deleteTitle", { name: trip.name })}
             description={tTrips("deleteDescription")}
             action={removeTrip.bind(null, trip.id)}
           />
-        </div>
-      )}
+        ) : (
+          <LeaveTripButton tripId={trip.id} tripName={trip.name} />
+        )}
+      </div>
     </main>
   );
 }

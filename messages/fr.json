@@ -59,8 +59,11 @@
     "startDate": "Début",
     "endDate": "Fin",
     "participants": "Participants",
-    "participantsHint": "Les dépenses sont réparties entre eux. Ce sont de simples prénoms : pour donner accès au voyage à quelqu'un, ajoute-le comme membre.",
+    "participantsHint": "Les dépenses sont réparties entre eux. Avec l'email de son compte, un participant voit et modifie aussi le voyage.",
     "participantName": "Prénom du participant {number}",
+    "participantEmail": "Email du compte du participant {number}",
+    "emailPlaceholder": "Email du compte (facultatif)",
+    "emailOwnerOnly": "Seul le propriétaire du voyage ajoute ou retire des comptes.",
     "addParticipant": "Ajouter un participant",
     "options": "Options",
     "trackPayers": "Suivre qui a payé",
@@ -75,23 +78,9 @@
     "save": "Enregistrer"
   },
   "members": {
-    "title": "Membres",
-    "description": "Les membres voient et modifient ce voyage et ses dépenses. Seul le propriétaire le supprime et gère les membres.",
-    "ownerHint": "Ajoute un compte existant avec son email.",
-    "owner": "Propriétaire",
-    "you": "toi",
-    "email": "Email du compte",
-    "emailPlaceholder": "lea@exemple.com",
-    "add": "Ajouter",
-    "added": "{name} a accès au voyage.",
-    "remove": "Retirer {name}",
-    "removeTitle": "Retirer {name} du voyage ?",
-    "removeDescription": "{name} ne verra plus ce voyage. Ses dépenses restent.",
-    "removed": "{name} n'a plus accès au voyage.",
-    "confirmRemove": "Retirer",
     "leave": "Quitter le voyage",
     "leaveTitle": "Quitter « {name} » ?",
-    "leaveDescription": "Tu ne verras plus ce voyage, sauf si on t'y ajoute à nouveau.",
+    "leaveDescription": "Tu ne verras plus ce voyage, sauf si on t'y ajoute à nouveau. Ta part des dépenses reste.",
     "confirmLeave": "Quitter",
     "cancel": "Annuler"
   },
@@ -276,7 +265,7 @@
     "rateRequired": "Indique le taux de change.",
     "amountTooSmall": "Montant trop petit une fois converti.",
     "endBeforeStart": "La fin est avant le début.",
-    "participantShares": "Ce participant partage des dépenses : retire-le d'abord de ces dépenses. Pour donner accès au voyage à quelqu'un, ajoute-le plutôt comme membre.",
+    "participantShares": "Ce participant partage des dépenses : retire-le d'abord de ces dépenses.",
     "participantPaid": "Ce participant a payé des dépenses : indique d'abord quelqu'un d'autre comme payeur.",
     "baseCurrencyLocked": "La devise de base ne peut plus changer une fois des dépenses saisies.",
     "noParticipant": "Choisis au moins un participant.",
@@ -284,7 +273,7 @@
     "unexpected": "Une erreur est survenue. Réessaie.",
     "importInvalid": "Le fichier contient des valeurs invalides : vérifie les colonnes choisies.",
     "lastCategory": "Garde au moins une catégorie.",
-    "userNotFound": "Aucun compte avec cet email.",
-    "alreadyMember": "Cette personne a déjà accès au voyage."
+    "userNotFound": "Aucun compte avec cet email : il faut un compte existant.",
+    "duplicateAccount": "Un même compte ne peut être lié qu'à un seul participant."
   }
 }

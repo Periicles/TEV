@@ -21,15 +21,19 @@ interface TripFormValues {
   /** Budget as typed in the input, empty for none. */
   budget: string;
   showDailyTotals: boolean;
-  participants: { id?: string; name: string }[];
+  /** `email`: the participant's account, which gives them access to the trip. */
+  participants: { id?: string; name: string; email?: string | null }[];
 }
 
 export function TripForm({
   trip,
   currencies,
+  canLinkAccounts = true,
 }: {
   trip: TripFormValues;
   currencies: { code: string; label: string }[];
+  /** Whether the user may link participants to accounts: only the trip's owner can. */
+  canLinkAccounts?: boolean;
 }) {
   const t = useTranslations("tripForm");
   const tErrors = useTranslations("errors");
@@ -102,11 +106,11 @@ export function TripForm({
         </Field>
       </div>
 
-      <fieldset className="grid gap-2">
+      <fieldset className="grid gap-3">
         <legend className="mb-2 text-sm font-medium">{t("participants")}</legend>
         <p className="-mt-1 text-xs text-muted-foreground">{t("participantsHint")}</p>
         {participants.map((p, index) => (
-          <div key={p.key} className="flex gap-2">
+          <div key={p.key} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-2 gap-y-1.5">
             <input type="hidden" name="participantId" value={p.id ?? ""} />
             <Input
               name="participantName"
@@ -114,7 +118,7 @@ export function TripForm({
               aria-label={t("participantName", { number: index + 1 })}
               required={index === 0}
             />
-            {participants.length > 1 && (
+            {participants.length > 1 ? (
               <Button
                 type="button"
                 variant="ghost"
@@ -124,7 +128,21 @@ export function TripForm({
               >
                 <XIcon />
               </Button>
+            ) : (
+              <span />
             )}
+            <Input
+              name="participantEmail"
+              type="email"
+              autoComplete="off"
+              defaultValue={p.email ?? ""}
+              placeholder={t("emailPlaceholder")}
+              aria-label={t("participantEmail", { number: index + 1 })}
+              // Read-only rather than disabled: every row must send its email to keep them aligned.
+              readOnly={!canLinkAccounts}
+              title={canLinkAccounts ? undefined : t("emailOwnerOnly")}
+              className="h-8 text-sm read-only:opacity-60"
+            />
           </div>
         ))}
         <Button
