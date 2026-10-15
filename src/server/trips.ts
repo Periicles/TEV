@@ -1,10 +1,12 @@
-import { and, asc, desc, eq, exists, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, isNull, lt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { category, expense, expenseParticipant, participant, trip, user } from "@/db/schema";
 import { convert, isCurrency } from "@/lib/money";
 import type { ErrorCode } from "@/i18n/errors";
 import { summarizeTrip } from "@/lib/summary";
+import { accessibleBy } from "./access";
+import { notifyAddedToTrip, notifyExpenseAdded } from "./notifications";
 
 /**
  * Data access for trips and expenses. Every function takes the signed-in user's id and only ever
@@ -89,19 +91,6 @@ export type ExpenseInput = z.infer<typeof expenseInput>;
 
 /** How long a deleted trip or expense can be restored before it is purged. */
 const RESTORE_WINDOW_MS = 60 * 60 * 1000;
-
-/** Trips the user owns or is a participant of. */
-function accessibleBy(userId: string) {
-  return or(
-    eq(trip.userId, userId),
-    exists(
-      db
-        .select({ one: sql`1` })
-        .from(participant)
-        .where(and(eq(participant.tripId, trip.id), eq(participant.userId, userId))),
-    ),
-  );
-}
 
 async function findTrip(
   userId: string,
@@ -257,7 +246,7 @@ export async function getTripDetails(userId: string, tripId: string) {
 export async function createTrip(userId: string, input: TripInput) {
   const data = tripInput.parse(input);
   const accounts = await accountsFor(data.participants);
-  return db.transaction(async (tx) => {
+  const created = await db.transaction(async (tx) => {
     const [created] = await tx
       .insert(trip)
       .values({
@@ -281,6 +270,12 @@ export async function createTrip(userId: string, input: TripInput) {
     );
     return created;
   });
+  await notifyAddedToTrip(
+    userId,
+    created.id,
+    accounts.filter((a): a is string => a !== null),
+  );
+  return created;
 }
 
 export async function updateTrip(userId: string, tripId: string, input: TripInput) {
@@ -292,7 +287,7 @@ export async function updateTrip(userId: string, tripId: string, input: TripInpu
     ? await accountsFor(data.participants)
     : data.participants.map((p) => current.participants.find((c) => c.id === p.id)?.userId ?? null);
 
-  return db.transaction(async (tx) => {
+  const updated = await db.transaction(async (tx) => {
     // Deleted expenses could not be restored into a trip whose currency or participants changed.
     await tx
       .delete(expense)
@@ -362,6 +357,14 @@ export async function updateTrip(userId: string, tripId: string, input: TripInpu
       .returning();
     return updated;
   });
+  // Tell the accounts that were just given access.
+  const before = new Set(current.participants.map((p) => p.userId));
+  await notifyAddedToTrip(
+    userId,
+    current.id,
+    accounts.filter((a): a is string => a !== null && !before.has(a)),
+  );
+  return updated;
 }
 
 /** Deletes for good what was deleted longer ago than the restore window, in the user's trips. */
@@ -464,7 +467,7 @@ async function prepareExpense(
 export async function createExpense(userId: string, tripId: string, input: ExpenseInput) {
   const target = await findTrip(userId, tripId);
   const { values, participantIds } = await prepareExpense(target, input);
-  return db.transaction(async (tx) => {
+  const created = await db.transaction(async (tx) => {
     const [created] = await tx
       .insert(expense)
       .values({ ...values, tripId: target.id })
@@ -474,6 +477,8 @@ export async function createExpense(userId: string, tripId: string, input: Expen
       .values(participantIds.map((participantId) => ({ expenseId: created.id, participantId })));
     return created;
   });
+  await notifyExpenseAdded(userId, target.id);
+  return created;
 }
 
 export async function getExpense(userId: string, expenseId: string) {
