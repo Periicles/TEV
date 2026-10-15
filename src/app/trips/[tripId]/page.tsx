@@ -11,12 +11,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMoney, splitEvenly } from "@/lib/money";
 import { settleUp } from "@/lib/summary";
+import { MarkRead } from "@/components/mark-read";
+import { tripsWithNews } from "@/server/notifications";
 import { loadTripPage } from "@/server/pages";
 
 export default async function TripPage({ params }: PageProps<"/trips/[tripId]">) {
   const { tripId } = await params;
-  const [{ trip, categories }, t, tTrips, tExport, tCategories, locale, format] = await Promise.all(
-    [
+  const [{ trip, categories, userId }, t, tTrips, tExport, tCategories, locale, format] =
+    await Promise.all([
       loadTripPage(tripId),
       getTranslations("trip"),
       getTranslations("trips"),
@@ -24,8 +26,8 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
       getTranslations("categories"),
       getLocale(),
       getFormatter(),
-    ],
-  );
+    ]);
+  const hasNews = (await tripsWithNews(userId)).has(trip.id);
 
   const money = (minor: number, currency = trip.baseCurrency) =>
     formatMoney(minor, currency, locale);
@@ -246,6 +248,8 @@ export default async function TripPage({ params }: PageProps<"/trips/[tripId]">)
           </Link>
         </Button>
       </div>
+      {/* Seeing the trip reads its notifications. */}
+      {hasNews && <MarkRead tripId={trip.id} />}
     </main>
   );
 }

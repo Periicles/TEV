@@ -47,7 +47,8 @@
     "confirmDelete": "Delete",
     "import": "Import",
     "shared": "Shared",
-    "sharedBy": "Shared by {name}"
+    "sharedBy": "Shared by {name}",
+    "news": "New"
   },
   "tripForm": {
     "createTitle": "New trip",
@@ -83,6 +84,16 @@
     "leaveDescription": "You will no longer see this trip, unless you are added again. Your share of the expenses stays.",
     "confirmLeave": "Leave",
     "cancel": "Cancel"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "bell": "{count, plural, =0 {Notifications} one {Notifications, # new} other {Notifications, # new}}",
+    "empty": "Nothing new for now.",
+    "emptyHint": "You will see here when someone shares a trip with you or adds expenses to it.",
+    "addedToTrip": "{actor} shared “{trip}” with you",
+    "expensesAdded": "{actor} added {count, plural, one {an expense} other {# expenses}} to “{trip}”",
+    "someone": "Someone",
+    "unread": "Unread"
   },
   "trip": {
     "total": "Total",

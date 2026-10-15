@@ -47,7 +47,8 @@
     "confirmDelete": "Supprimer",
     "import": "Importer",
     "shared": "Partagé",
-    "sharedBy": "Partagé par {name}"
+    "sharedBy": "Partagé par {name}",
+    "news": "Nouveau"
   },
   "tripForm": {
     "createTitle": "Nouveau voyage",
@@ -83,6 +84,16 @@
     "leaveDescription": "Tu ne verras plus ce voyage, sauf si on t'y ajoute à nouveau. Ta part des dépenses reste.",
     "confirmLeave": "Quitter",
     "cancel": "Annuler"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "bell": "{count, plural, =0 {Notifications} one {Notifications, # nouvelle} other {Notifications, # nouvelles}}",
+    "empty": "Rien de nouveau pour l'instant.",
+    "emptyHint": "Tu verras ici quand on partage un voyage avec toi ou qu'on y ajoute des dépenses.",
+    "addedToTrip": "{actor} a partagé « {trip} » avec toi",
+    "expensesAdded": "{actor} a ajouté {count, plural, one {une dépense} other {# dépenses}} à « {trip} »",
+    "someone": "Quelqu'un",
+    "unread": "Non lue"
   },
   "trip": {
     "total": "Total",

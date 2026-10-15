@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMoney } from "@/lib/money";
 import { requireSession } from "@/lib/session";
+import { tripsWithNews } from "@/server/notifications";
 import { listTrips } from "@/server/trips";
 
 export default async function Home() {
   const { user } = await requireSession();
-  const [trips, t, locale, format] = await Promise.all([
+  const [trips, news, t, locale, format] = await Promise.all([
     listTrips(user.id),
+    tripsWithNews(user.id),
     getTranslations("trips"),
     getLocale(),
     getFormatter(),
@@ -54,7 +56,17 @@ export default async function Home() {
                 <Card className="transition-colors hover:bg-accent/50">
                   <CardHeader>
                     <div className="flex items-start justify-between gap-4">
-                      <CardTitle>{trip.name}</CardTitle>
+                      <CardTitle className="flex flex-wrap items-center gap-2">
+                        {trip.name}
+                        {news.has(trip.id) && (
+                          <Badge
+                            className="shadow-[0_0_8px_var(--primary-glow)]"
+                            data-testid="news"
+                          >
+                            {t("news")}
+                          </Badge>
+                        )}
+                      </CardTitle>
                       <span className="neon-text font-semibold tabular-nums">
                         {formatMoney(trip.totalMinor, trip.baseCurrency, locale)}
                       </span>

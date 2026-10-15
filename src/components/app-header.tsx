@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { isLanguage, LANGUAGE_COOKIE } from "@/i18n/config";
 import { getSession } from "@/lib/session";
+import { unreadCount } from "@/server/notifications";
+import { NotificationBell } from "./notification-bell";
 import { PreferencesMenu } from "./preferences-menu";
 
 export async function AppHeader() {
@@ -12,6 +14,7 @@ export async function AppHeader() {
     getSession(),
   ]);
   const stored = cookieStore.get(LANGUAGE_COOKIE)?.value;
+  const unread = session ? await unreadCount(session.user.id) : 0;
 
   return (
     <header className="border-b">
@@ -19,10 +22,13 @@ export async function AppHeader() {
         <Link href="/" className="neon-text font-semibold tracking-wide">
           {t("name")}
         </Link>
-        <PreferencesMenu
-          languagePreference={isLanguage(stored) ? stored : "auto"}
-          signedIn={Boolean(session)}
-        />
+        <div className="flex items-center gap-1">
+          {session && <NotificationBell unread={unread} />}
+          <PreferencesMenu
+            languagePreference={isLanguage(stored) ? stored : "auto"}
+            signedIn={Boolean(session)}
+          />
+        </div>
       </div>
     </header>
   );
