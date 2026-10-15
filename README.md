@@ -98,6 +98,12 @@ CI runs all three on every pull request.
   accounts, and a linked participant can leave (their account is unlinked, their share stays). The
   trip's creator is its first participant, linked to their own account. A shared trip uses its
   owner's categories, so everyone sorts expenses the same way. The trips list marks shared trips.
+- **Notifications** (`notification`, `src/server/notifications.ts`): an account is told when a trip
+  is shared with it and when someone else adds expenses to one of its trips. Expenses added by the
+  same person to the same trip count on one unread notification ("Léa added 3 expenses"). A bell in
+  the header shows the unread count and leads to `/notifications`; trips with news are marked in
+  the list. Opening the notifications reads them all, opening a trip reads its own. Read
+  notifications are deleted after 30 days, and those about trips the user left are hidden.
 - Every query is scoped to the trips the signed-in user owns or is a participant of
   (`src/server/trips.ts`); any other trip behaves as if it did not exist.
 - Next.js keeps visited pages in the DOM (hidden): form field ids derive from the record they edit,
