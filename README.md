@@ -92,13 +92,13 @@ CI runs all three on every pull request.
   view (all expenses are loaded anyway, for the totals: only rendering is progressive). The search
   covers every expense: label, category, payment method, payer, notes, amounts and date, in any
   order, without case or accents.
-- **Shared trips**: a trip's owner adds other accounts as **members**, by their email, on the trip's
-  edit page (`trip_member`). Members see and edit the trip and its expenses; only the owner deletes
-  the trip and adds or removes members, and a member can leave. A shared trip uses its owner's
-  categories, so everyone sorts expenses the same way. The trips list marks shared trips.
-  Participants stay plain names: a member does not have to be a participant, nor the other way
-  round.
-- Every query is scoped to the trips the signed-in user owns or is a member of
+- **Shared trips**: a participant can be linked to an **account** by its email, in the trip form
+  (`participant.user_id`); the account must exist, as there is no sign-up. Linked participants see
+  and edit the trip and its expenses; only the owner deletes the trip and links or unlinks
+  accounts, and a linked participant can leave (their account is unlinked, their share stays). The
+  trip's creator is its first participant, linked to their own account. A shared trip uses its
+  owner's categories, so everyone sorts expenses the same way. The trips list marks shared trips.
+- Every query is scoped to the trips the signed-in user owns or is a participant of
   (`src/server/trips.ts`); any other trip behaves as if it did not exist.
 - Next.js keeps visited pages in the DOM (hidden): form field ids derive from the record they edit,
   and end-to-end tests look fields up inside the visible `<main>`.
