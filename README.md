@@ -13,7 +13,7 @@ A personal web app to track travel expenses in multiple currencies, replacing a 
 
 ## Getting started
 
-Requirements: Node.js 24+ and pnpm (`corepack enable`).
+Requirements: Node.js 24 and pnpm (`corepack enable`).
 
 ```bash
 pnpm install
@@ -42,6 +42,17 @@ Then open http://localhost:3000 and sign in.
 | `pnpm db:studio`                  | Browse the database                                     |
 | `pnpm user:create <email> <name>` | Create an account (password prompted)                   |
 | `pnpm user:password <email>`      | Change a password and sign the user out everywhere      |
+
+## Dependencies
+
+pnpm settings live in `pnpm-workspace.yaml`:
+
+- Packages' install scripts do not run, except for those listed there (pnpm's default).
+- Versions published less than 3 days ago are not installed (`minimumReleaseAge`): most hijacked
+  packages are pulled from the registry within hours. An urgent security fix younger than that can
+  be let through with `minimumReleaseAgeExclude`.
+- `overrides` force patched versions of packages that a dependency pins to a vulnerable one. Check
+  with `pnpm audit`.
 
 ## Tests
 
