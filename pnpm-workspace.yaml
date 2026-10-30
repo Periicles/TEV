@@ -1,3 +1,7 @@
+# Versions published less than 3 days ago (in minutes) are not installed: most hijacked packages
+# are pulled from the registry within hours.
+minimumReleaseAge: 4320
+
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver

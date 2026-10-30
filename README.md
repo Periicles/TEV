@@ -43,6 +43,17 @@ Then open http://localhost:3000 and sign in.
 | `pnpm user:create <email> <name>` | Create an account (password prompted)                   |
 | `pnpm user:password <email>`      | Change a password and sign the user out everywhere      |
 
+## Dependencies
+
+pnpm settings live in `pnpm-workspace.yaml`:
+
+- Packages' install scripts do not run, except for those listed there (pnpm's default).
+- Versions published less than 3 days ago are not installed (`minimumReleaseAge`): most hijacked
+  packages are pulled from the registry within hours. An urgent security fix younger than that can
+  be let through with `minimumReleaseAgeExclude`.
+- `overrides` force patched versions of packages that a dependency pins to a vulnerable one. Check
+  with `pnpm audit`.
+
 ## Tests
 
 - **Unit** (`*.test.ts`, Vitest): pure logic such as locale resolution and translation catalogs.
